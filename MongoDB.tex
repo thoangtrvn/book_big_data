@@ -1,0 +1,94 @@
+\chapter{MongoDB}
+\label{chap:MongoDB}
+
+MongoDB is a new, open-source NoSQL database system. MongoDB can be used as a
+file system, taking advantage of load balancing and data replication features
+over multiple machines for storing files.  This is known as {\bf Sharding}
+(Sect.\ref{sec:sharding}).
+
+MongoDB is very much similar to CouchDB (Chap.\ref{chap:MongoDB}), except it has
+a single-master node only. Data is stored in JSON-like format with dynamic
+schemas (which is called BSON format).
+To access data in MongoDB from Hadoop's MapReduce jobs (including from Apache
+Hive and Pig), including incrementally writing output back to collections in
+MongoDB, we can use {\bf MongoDB Hadoop Connector}
+(Sect.\ref{sec:MongoDB_Hadoop-Connector}).
+\url{http://www.mongodb.com/hadoop-and-mongodb}
+
+
+MongoDB was first released in 2007 by 10gen (now MongoDB Inc.) and shifted to
+open-source in 2009; while MongoDB Inc. offers commercial supports. 
+
+MongoDB does not have a version control  system like CouchDB. So,
+it uses readers-writer lock that allows concurrent read access to a database but
+exclusive write access to a single write operation.
+
+Riak and Cassandra are both implementations of Amazon's Dynamo, which could each
+do a good job of that.
+\url{http://wiki.basho.com/Riak-Compared-to-Cassandra.html}
+
+All MongoDB nodes are readable, but only a master is writable.
+About a single point of failure: MongoDB uses replicasets for distributing reads
+and sharding for distributing writes. Note: MongoDB does not support
+multi-master replication. To have multi-master database, we can use Apache
+Cassandra, which has no single point of failure. \url{http://hadoop.apache.org/}
+
+HBase is a scalable, distributed database that supports structured data storage
+for large tables. HBase can do very big, can do concurrent writes on various
+nodes. Its design is good for many attributes on each document/record.
+CouchDB has good multiple-write conflict support but with a simpler document
+space.
+\url{http://stackoverflow.com/questions/5436202/looking-for-distributed-scalable-database-solution-where-all-nodes-are-read-writ}
+
+\section{Sharding}
+\label{sec:sharding}
+
+Sharding is the process of storing data records across multiple machines and is
+MongoDB's approach to meeting the demands of data growth.  With sharding, you
+add more machines to support data growth and the demands of read and write
+operations. Each machine is called a {\bf Shard}, e.g. Shard A, Shard B, \ldots
+
+Each shard processes fewer operations as the cluster grows. As a result, a
+cluster can increase capacity and throughput horizontally.
+\url{http://docs.mongodb.org/manual/core/sharding-introduction/}
+
+\subsection{Install}
+
+A sharded cluster consists of shards, config servers, and mongos instances.
+
+There is a daemon \verb!mongod! instance running on each Shard machine.
+The config server holds the metadata about the cluster, e.g. shard location of
+the data. 
+
+\url{http://docs.mongodb.org/manual/tutorial/deploy-shard-cluster/}
+
+
+
+
+% \section{MongoDB on HDFS}
+
+% HDFS is not schema-based; data of any type can be stored.
+% Hadoop jobs define a schema for reading the data within the scope of the job.
+% Hadoop does not use indexes. Data is scanned for each query.
+% Hadoop jobs tend to execute over several minutes.
+
+% As Hadoop with MapReduce jobs is batch processing, i.e. not designed for
+% real-time application, we can use it in health-care when data and processing
+% tasks that exceed the capacity of a single server, and applications tend to be
+% based on large volumes of data. For real-time processing, we can use Apache
+% HBase on HDFS. Several information is stored in log files in Hadoop.
+% Apache Flume is a tool for collecting data from log files into HDFS.
+
+
+\section{MongoDB Hadoop Connector}
+\label{sec:MongoDB_Hadoop-Connector}
+
+Instead of using HDFS for the file system, Hadoop's MapReduce can
+access data on MongoDB using MongoDB Hadoop Connector. 
+
+\url{http://docs.mongodb.org/ecosystem/tools/hadoop/}
+
+
+\url{http://www.ikanow.com/how-well-does-mongodb-integrate-with-hadoop/}
+
+

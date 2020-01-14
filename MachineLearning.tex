@@ -1,0 +1,289 @@
+
+ 
+
+\chapter{Machine learning}
+\label{sec:machine-learning}
+
+Machine learning allows {\it a machine to find hidden insights without being
+explicitly programmed where to look for}. See applications
+(Sect.\ref{sec:application-machine-learning}).
+
+In a traditional way, there are several applications for Machine Learning
+(ML), 
+\begin{enumerate}
+  \item  data mining
+   
+  \item classification
+\end{enumerate}
+
+The classification is a fundamental problem in that machine learning techniques
+have been widely used to solve;  e.g. neural networks. 
+
+
+\section{Abstract a problem in mathematical language}
+
+The most common mathematical framework for learning.
+\begin{enumerate}
+  \item training samples
+
+$D$ contains a set of data item
+\begin{equation}
+D = {z_1, z_2, \ldots, z_n}
+\end{equation}
+with $z_i$ represent a completed data item and is sampled from an {\bf
+unknown} process $P(Z)$. \textcolor{red}{REMEMBER that the goal is to build a
+system $f$ that is (trained to behave/producing output/making decision) as
+closed to (as good as) this unknown process as possible}.
+  
+  \item A loss functional $L$: 
+
+\begin{equation}
+L(f, z_i) = \text{real-valued scalar}
+\end{equation}  
+
+The different real-valued scalar represent the error, which we aim to minimize
+by adjusting the parameters/weights of some decision function $f$.
+At the end of the training, $f$ is supposed to behave like the unknown process $P$.
+
+%There are common strategies to choose this loss function.
+
+   \item The question is how to adjust the parameters/weights that represent the
+   state function of $f$? 
+   
+   There are two approaches
+   \begin{enumerate}
+     \item super-vised learning - Sect.\ref{sec:supervised-learning}
+     \item unsupervised learning - Sect.\ref{sec:unsupervised-learning}
+   \end{enumerate} 
+\end{enumerate}
+
+\subsection{supervised learning}
+\label{sec:supervised-learning}
+
+Given the training samples, we always know the expected outcome, i.e. 
+training samples always come in pair, $z_i=(x,y)$ with x=input,
+y=target-output/decision.  NOTE: For multiple data samples, we use upper-case
+symbol, i.e. $Z=(X,Y)$ - a vector/matrix.
+
+QUESTION: minimize the difference $f(x)-y$, which is typically represented as,
+depending on the type of values of $Y$.
+\begin{enumerate}
+  \item {\bf regression} form: if $Y$ is a real-value scalar, or vector.
+  
+  \begin{equation}
+L(f,(X,Y)) = ||f(X)-Y||^2
+\end{equation}
+  
+  
+  \item {\bf classification} form: if $Y$ is an integer-value scalar, or a
+  symbol) corresponding to a class index, i.e. category index.
+  
+ $f(X)$ represents a probability function, with $f_i(X)$ returns the probability
+ that X falls into category $i$-th. So, the contraints are
+ \begin{equation}
+ \begin{split}
+ \sum_i f_i(X) = 1 \\
+ f_i(Y) \ge 0
+ \end{split}
+ \end{equation}
+  
+ This maps to the Bayesian decision rule: $P(Y=i | X)$. When the system
+ 'predict'/estimate the right category, it means that the probability for that
+ should be high (as close to 1 as possible). This maps to the loss function by
+ converting into the \verb!-log()! function
+ \begin{equation}
+ L(f, (X,Y)) = -log f_Y(X)
+ \end{equation}
+  
+  
+\end{enumerate}
+
+
+
+
+\subsection{unsupervised learning}
+\label{sec:unsupervised-learning}
+
+As we don't know the target of individual data item/point, one way to find out
+which data points belong to the same 'unknown' target is by 'visualizing' them
+in the space, and find the clustering, i.e. those clustered together are
+supposed to be of the same 'unknown' target.
+
+This is known as {\bf density estimation}, i.e. discovering the hidden
+properties inside the data. So, if we can estimate its density function
+(Sect.\ref{sec:density-estimation}), i.e. we can have a good chance of
+predicting the 'target' of a new data. Density estimation walks the line between
+unsupervised learning, feature engineering, and data modeling.
+
+% Consider the {\bf unknown} process $P$ whose outcome/output as a random
+% variable, i.e. we don't know it's next value, but we may know its probbility
+% density function, if the output is known to be clustered following certain
+% distribution pattern.
+
+ 
+\section{Density estimation}
+\label{sec:density-estimation}
+
+Density estimation is a very simple concept being used in unsupervised learing
+(Sect.\ref{sec:density-estimation}), and most people are already familiar with
+one common density estimation technique: the histogram
+(Sect.\ref{sec:histogram}).
+
+
+\section{Classification}
+\label{sec:classification}
+
+Classification systems play an important role in a wide variety of fields by
+classifying the available information based on some criteria.
+Many decision-making tasks are instances of classification problem or can be
+easily formulated into a classifica- tion problem, e.g., prediction and
+forecasting tasks, diagnosis tasks, and pattern recognition.
+
+In supervised classification, the classifier is constructed from patterns in a
+training set and assign label for unseen patterns from a test set. Each pattern
+belongs to one class, and the number of classes is known.
+
+Techniques:
+\begin{enumerate}
+  \item support vector machine (SVM)
+
+Lu, S.-X., Wang, X.-Z.: A comparison among four SVM classification methods:
+LSVM, NLSVM, SSVM and NSVM. In: Proc. of 2004 Int'l on Machine Learning
+and Cybernetics, vol. 7, pp. 4277-4282 (2004)
+
+  
+  \item artificial neural network (ANN) -
+  Sect.\ref{sec:ANN-articial-neuron-network}
+  
+  \item underlying probability densities
+
+Duda, R.O., Hart, P.E., Stork, D.G.: Pattern classification. John Wiley \& Sons,
+New York (2001)
+
+\end{enumerate}
+
+\section{Data sets}
+
+Every instance in any dataset used by machine learning algorithms is represented
+using the same set of features. The features may be continuous, categorical or
+binary.
+
+
+\subsection{Collection}
+
+The first step is collecting the dataset. If a requisite expert is available,
+then s/he could suggest which fields (attributes, features) are the most
+informative. If not, then the simplest method is that of "brute-force," which
+means measuring everything available in the hope that the right (informative,
+relevant) features can be isolated.
+However, a dataset collected by the "brute-force" method is not directly
+suitable for induction. It contains in most cases noise and missing feature
+values, and therefore requires significant pre-processing (Zhang et al., 2002)
+- Sect.\ref{sec:data-preprocessing}.
+
+\subsection{Pre-processing}
+\label{sec:data-preprocessing}	
+
+
+The second step is the data preparation and data preprocessiong.
+Depending on the circumstances, researchers have a number of methods to choose
+from to handle missing data (Batista \& Monard, 2003). Hodge \& Austin (2004)
+have recently introduced a survey of contemporary techniques for outlier (noise)
+detection.
+ 
+\section{-- outlier detections}
+
+Many schemes for outlier detection
+have proposed by researchers.
+
+\begin{enumerate}
+  \item  The early outlier detection methods are based-distribution
+
+  \item However, in practice the distribution is not easily to known.
+
+  \item  distance-based: Knorr E.M et al. (1999)
+  
+Knorr, E.M., Ng, R.T.: Finding Intensional Knowledge of Distance-based Outliers.
+In: Proc. 25th Int'l Conference on very large Data Bases, Edinburgh, Scotland, pp.
+211-222 (1999)
+
+CONS: can not work well when the data set does not have uniform density global
+
+  \item multilayer perceptron (MLP) and variations of the RBF network: Liu-Gader
+  (2000)
+  
+Liu, J., Gader, P.: Outlier Rejection with MLPs and Variants of RBF Networks.
+In: Proc. 15th Int'l Conference on Pattern Recognition, vol. 2, pp. 680-683 (2000)
+
+\end{enumerate}
+
+
+
+\section{Generalized Linear Model (GLM) using Logistic regression}
+\label{sec:GLM}
+\label{sec:Gradient-Boosting}
+
+Applications:
+\begin{enumerate}
+  \item customer churn prediction
+\end{enumerate}
+
+\section{Gradient Boosting Machines (GBM) using Decision trees}
+\label{sec:GBM}
+
+Applications:
+\begin{enumerate}
+  \item airline flight delay prediction
+\end{enumerate}
+
+
+\chapter{Machine Learning on Distributed Systems}
+\label{chap:machine_learning_distributed_system}
+
+MapReduce is a two-stage approach (Map first, then Reduce) for solving many
+query-based problem on very large dataset. Hadoop's MapReduce impelement is
+disk-based. 
+
+\section{Mahout}
+\label{sec:mahout}
+
+Mahout (from 2009) aims to produce free implementation of distributed (or
+scalable) machine learning algorithms focused primarily on 
+\begin{enumerate}
+  \item batch-based collaborative filtering
+  \item clustering
+  \item classification
+  \item recommendation
+\end{enumerate}
+Many of the implementations in Mahout use Apache Hadoop's disk-based Map-Reduce
+paradigm. However, it does not restrict contributions only for Hadoop-based
+implementation. Contributions that run on a single node or on a  non-Hadoop
+cluster are also welcomed. 
+
+Recently, Mahout community is switching to  a better approach, using in-memory
+(cache-based) approach, proves a many times better in performance (Spark -
+Sect.\ref{sec:apache_spark}, H2O or Flink).
+
+
+
+
+\url{http://en.wikipedia.org/wiki/Apache_Mahout}
+
+
+\section{Apache Spark}
+\label{sec:apache_spark}
+
+Apache Spark provides an implementation to many machine learning algorithms to
+read data stored on HDFS file system (Sect.\ref{sec:HadoopFS}) or Cassandra
+database system (Sect.\ref{chap:cassandra}). 
+Spark use in-memory approach, i.e. data is cached, so it is considered faster
+than Apache Mahout (Sect.\ref{sec:mahout}).
+
+Spark joined incubator since June 2013, and graduated as Apache top-level
+project in Feb-2014. Spark provides API in Java, Scala and Python, which has
+proved to scale well on 2000 nodes (Amazon EC2 research lab) and 1000 nodes (on
+production). It provides implementation for many machine learning and graph
+processing algorithm.
+
+
+

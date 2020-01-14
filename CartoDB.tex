@@ -1,0 +1,68 @@
+\chapter{CartoDB - geospatial data}
+\label{chap:CartoDB}
+
+CartoDB was created to solve the problem with current tools when creating online
+maps and dealing with geospatial data.
+\begin{itemize}
+  \item PostGIS: fastest geospatial database, based on PostgreSQL
+  
+  \item Mapnik:  
+
+  \item MapBox: Sect.\ref{sec:MapBox}
+    
+  \item Fusion Tables: a  cell of data supports max 1 million characters; when
+  zoomed farther out, tables with > 500 features will show dots (not lines or
+  polygons), SQL api allows 5 requests/second; upto 5 Fusion Table layers to a
+  map, one among them can be styled with upto 5 styling rules.
+  
+  \url{https://speakerdeck.com/jatorre/cartodb-how-working-with-geospatial-data-can-be-a-joy-and-not-a-pain}
+\end{itemize}
+250MB size limit, 500 vertices per tile limit, only the
+  first 100K shapes will be rendered, only the first 100K rows of data in a
+  table are mapped or included in the query results (after this, these rows are
+  not displayed), max number of vertices supported per table is 5 million.
+  
+
+CartoDB is a new Open Source Geospatial Database in the cloud. 
+CartoDB was built on open source software including PostGIS and PostgreSQL. The
+tool uses JavaScript extensively in the front end web application, back end
+Node.js based APIs, and for client libraries. 
+
+It leverages the full power of PostGIS and Mapnik to effortlessly stand up the
+services needed to create maps and develop location aware applications.
+Importing geospatial data is as simple as dragging files into it, editing the
+data is just the way it is supposed to be, the maps are fast and responsive, it
+just works! Plus set the tables to real time and you will be able to have real
+time visualizations on your data changes.
+
+
+
+\section{CartoDB 1.0}
+
+CartoDB 1.0 uses PostGIS 2.0 that supports
+\begin{itemize}
+  \item Raster
+  \item Topology
+  \item Nearest neighbors
+  \item GeoJSON
+  \item PostgreSQL 9.1
+  \item ST\_MakeValid, ST\_Snap
+  \item typmod
+  \item OpenStreeMap
+  \item GeoProcessing on JavaScript
+\end{itemize}
+
+\section{Carto3D = CartoDB + WhirlyGlobe}
+
+
+\section{Vizzuality HTML5 Lab}
+
+Contains example using CartoDB and HTML5: available on github
+\url{}
+
+\section{OpenStreeMap}
+
+
+\section{MapBox}
+\label{sec:MapBox}
+

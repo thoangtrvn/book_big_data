@@ -1,0 +1,234 @@
+\documentclass[11pt]{book}
+\usepackage{draftcopy} % PS or DVI
+%\usepackage{pdfdraftcopy} % PDF
+%http://filoxus.blogspot.com/2008/01/how-to-insert-watermark-in-latex.html
+
+\usepackage{amsmath} %Never write a paper without using amsmath for its many new commands
+
+\usepackage{amssymb} %Some extra symbols
+
+\usepackage{makeidx} %If you want to generate an index automatically
+%\usepackage{graphicx} %If you want to include postscript graphics
+\ifx\pdftexversion\undefined 
+\usepackage[dvips]{graphicx}
+%%%%%%%% 
+%% To include .jpg and .pnm into latex
+%%%%%%%%%%%%%%
+\DeclareGraphicsExtensions{.jpg,.eps,.pnm}
+\DeclareGraphicsRule{.jpg}{eps}{.jpg.bb}{`jpeg2ps -h #1}
+\DeclareGraphicsRule{.pnm}{eps}{.pnm.bb}{`pnmtops #1}
+\else
+\usepackage{graphicx}
+\fi
+  
+\usepackage{epsfig}
+
+\usepackage{color}  %Add color capabilities to fonts,e.g. \color{blue}{text something}
+\usepackage{listings} % Add typeset programs (programming code) within LaTeX.
+\usepackage{xcolor}
+\usepackage{textcomp}
+
+\usepackage{tabularx}
+
+\usepackage[square]{natbib}
+
+\usepackage{cprotect}
+
+\usepackage{import}
+
+\usepackage{tabularx}
+%\usepackage{ucs}
+\usepackage[T1]{fontenc}
+%\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+
+\usepackage{chemarr}
+
+\usepackage{verbatim}
+
+\usepackage[version=3]{mhchem}
+ 
+%\usepackage{mystyle} 
+%Create your own file, mystyle.sty where you put 
+% all your own \newcommand statements, for example.
+
+%\usepackage{url}
+\usepackage[hyphens]{url}
+           % usage \url{URL}
+
+%%\usepackage[hypertex, dvips]{hyperref}       % does not work with LaTeX2HTML
+            % usage \href{URL}{text}
+%\includeonly{chaptr2} %If you just want to process chaptr2.tex
+\usepackage[breaklinks=true, linktocpage]{hyperref}       
+
+\usepackage[hyphenbreaks]{breakurl}  % used with dvips, not with pdflatex
+\usepackage{breakcites}
+
+\usepackage[all]{hypcap}
+%\graphicspath{{./images/}}
+
+\usepackage{lgrind}
+
+\usepackage[stable]{footmisc}
+
+\usepackage{multicol}
+
+\usepackage{fancyvrb}
+
+\usepackage{ulem} 
+% support : \uline, \sout, \uuline...
+\usepackage{soul}
+
+\usepackage{framed}
+\usepackage[style=2]{mdframed}
+\usepackage[square]{natbib}
+
+\lstset{
+  basicstyle=\ttfamily,
+  keywordstyle=\bfseries,
+  showstringspaces=false,
+  columns = fullflexible,
+  mathescape = false,
+  prebreak = \raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
+  % language=R
+}
+
+
+\let\~=\tilde
+
+
+
+\import*{../}{abbreviations.tex}
+
+
+\begin{document}
+
+\author{Tuan, Hoang-Trong}
+\title{Big Data}
+\date{Jan 2009}
+
+\frontmatter
+\tableofcontents
+%\include{preface}
+
+\mainmatter
+\lstset{language={[77]Fortran}, numbers=left, numberstyle=\tiny,
+  stepnumber = 5, numbersep=5pt, keywordstyle=\color{blue}}
+
+Convention:
+
+\begin{itemize}
+\item Text with \textcolor{red}{red color}: obsolete feature,
+  statement...
+\item Text with \textcolor{green}{yellow color}: not available in this
+  version
+\end{itemize}
+
+\part{Database Technologies}
+\include{Introduction}
+\import*{../Website_Builder/}{REST.tex}
+\include{SQL_lang}
+\import*{../Website_Builder/}{RDF.tex}
+\include{StorageModel_XML}
+ 
+
+\part{Cloud Computing}
+\import*{../Sys_admin/}{VirtualMachine.tex}
+\include{Hypervisor} 
+\import*{../Sys_admin/}{OS_4_CloudComputing.tex}
+\include{Cloud_Computing}
+\import*{../Csharp_Manual/}{WebServices.tex}
+\import*{../Csharp_Manual/}{WebServices_dotNET.tex}
+\import*{../Java_Manual/}{WebServices_Java.tex}
+\include{OpenStack}
+\include{OSv}
+\include{CloudRuntimeEnvironment_GoogleAppEngine}
+\import*{../Sys_admin/}{Hyperscale_computing.tex}
+
+\part{Tools to Interact with a Cloud Machine}
+\import*{../Python_Manual/}{Cloud_PythonPackages.tex}
+
+%\part{Search}
+\part{Search Engines}
+\include{InformationRetrieval}
+\include{Desktop_SearchEngine}
+\include{Web_SearchEngine}
+\include{Solr}
+\include{ElasticSearch} 
+
+\part{Web Crawling}
+\include{WebCrawling}
+\include{Apache_Nutch}
+
+\part{Document Management}
+\include{DocumentManagement}
+
+
+\part{Database}
+\include{Google_Bigtable} 
+\include{HBase}
+\include{MongoDB}
+\include{CouchDB}
+\include{Riak} 
+\include{Cassandra}
+\include{Hive_Pig}
+\include{Impala_PrestoDB}  
+\include{CartoDB}
+\include{ArangoDB}
+
+\part{File System}
+\include{FileSystem}
+\include{DistributedFilesystem}
+
+\part{Inter-process communication}
+\import*{../C-Cpp_Manual/}{Socket.tex}
+\import*{../Python_Manual/}{ObjectSerialization.tex}
+\import*{../Sys_admin/}{OS_kernels.tex}
+\import*{../Linux_Computing/}{InterProcessCommunication.tex}
+
+\part{Distributed Computing Platform}
+\include{Hadoop}  % use MapReduce Programming model
+\include{LargeScale_GraphData} % use Bulk Synchronous Parallel programming model
+% \include{MPI}  % use MPI programming model
+
+\part{Data Structure}
+\include{Tree_datastructure} 
+\import*{../GUI_development/}{Graph_Layout.tex}
+
+
+\part{Log}
+\include{Scribe}
+\include{Chukwa}
+\include{Flume} 
+
+
+
+\part{Security}
+\import*{../Sys_admin/}{Security_protocols.tex}
+
+\part{Machine Learning}
+\import*{../Comp_Cell_Biol/}{Memory.tex}
+\include{DeepLearning}
+\include{MachineLearning} % \ldots 
+
+%\part{Appendix}
+%\include{Appendix}
+
+\backmatter 
+%\include{glossary}
+%\include{notat}
+%\bibliographystyle{biophysj} 
+%\bibliographystyle{amsalpha} %The style you want to
+% use for references.
+%\bibliography{../ref_Fortran} %The files containing all
+                                %the articles and books you ever
+                                %referenced. 
+\printindex %Make an index AUTOMATICALLY
+
+\end{document} 
+% \begin{figure}[hbt]
+%   \centerline{\includegraphics[height=6cm,
+%     angle=0]{./images/table-relationship.eps}}
+% \caption{Table relationship used in E-R diagram}
+% \label{fig:table-relationship}
+% \end{figure}

@@ -1,0 +1,111 @@
+\chapter{Solr}
+\label{chap:Solr}
+
+Solr is the descendant of {\bf Lucene}, a search indexer for information
+retrieval (Sect.\ref{sec:Lucene}). Perhaps the most significant deployment of
+Lucene is Wikipedia, where it powers search for the entire site.
+
+\section{Lucene (information retrieval)}
+\label{sec:Lucene}
+
+
+Lucene is an open-source {\it information retrieval} software library
+(Chap.\ref{chap:Information_Retrieval}), initially written in Java. It has been
+ported to  Delphi, Perl, C\#, C++, Python, Ruby, and PHP.
+
+While suitable for any applications that require {\it full-text indexing} and
+searching capability, Lucene has been widely used mainly in implementation of
+{\bf Internet search engines} and local, single-site searching. 
+
+A single document is represented as {\bf fields} of text. So, the APIs of Lucene
+is independent of the file format. It can accepts text from PDF, HTML, MS Word,
+OpenDocuments and many others (as long as the textual information can be
+extracted); but \textcolor{red}{not images}.
+
+Lucene needs user to feed the data into the system. So, it doesn't do crawling
+and HTML parsing. There are other projects that use Lucene and add these
+features.
+\begin{enumerate}
+  \item Apache Nutch: web crawling and HTML parsing
+  \item Apache Solr: enterprise search server (Sect.\ref{sec:Solr})
+  \item Elasticsearch: enterprise search server (Chap.\ref{chap:elastic_search})
+  \item DocFetcher: multi-platform desktop search application
+  (Sect.\ref{sec:DocFetcher})
+  \item 
+\end{enumerate}
+
+Similar tools (NOTE: Lucene is written in Java)
+\begin{enumerate}
+  \item Lucene.NET: .NET framework
+  \item Ferret: Ruby language, and use Poshlib
+  \item Kinosearch: Perl and C
+  \item Apache Lucy: the successor of Ferret and Kinosearch, with bindings to
+  both Perl and Ruby.
+\end{enumerate}
+
+A GUI to Lucene is 
+\begin{enumerate}
+  \item {\bf Luke}: Java-based GUI (display and modify indexes)
+\end{enumerate}
+
+Companies that use Lucene
+\begin{enumerate}
+  \item Twitter: real-time search
+\end{enumerate}
+
+\section{Solr}
+\label{sec:Solr}
+
+Solr was created in 2004 at CNET Networks as an in-house project to add search
+capability for the company website. Every new open-source project need to go
+through an incubation period to ensure the open-source is legal; when it
+passes, it is graduated. Solr started the incubation period in Jan, 2006 and
+graduated in Jan, 2007.
+
+Derived from Lucene (Sect.\ref{sec:Lucene}), Solr enables the search and
+indexing as  a {\it search platform} for being used in an enterprise.
+Solr is highly scalable, with support for NoSQL features (Sect.\ref{sec:NoSQL}).
+It also includes full-text search, hit highlighting, faceted search, dynamic
+clustering, database integration, and rich document (e.g., Word, PDF) handling.
+Solr's powerful external configuration allows it to be tailored to many types of
+application without Java coding, and it has a plugin architecture to support
+more advanced customization.
+
+Solr uses the Lucene Java search library at its core for full-text indexing and
+search, and has REST-like HTTP/XML and JSON APIs that make it usable from most
+popular programming languages.
+
+\begin{enumerate}
+  \item Solr 1.3 (2008, Sept): distributed search capabilities and performance
+  enhancements 
+  \item Solr 1.4 (2008, Nov): nhancements in indexing, searching and faceting
+  along with many other improvements such as Rich Document processing (PDF,
+  Word, HTML), Search Results clustering based on Carrot2 (Sect.\ref{sec:Carrot})
+  and also improved database integration. The release also features many additional plug-ins   
+  
+  \item 2010, March: Solr and Lucene merged
+  \item Solr 3.1 (2011): version scheme changed to match with Lucene
+  \item Solr 4.0 (2012, Oct): new SolrCloud feature
+  \item Solr 4.1, 4.2, 4.2.1
+\end{enumerate}
+
+
+\section{Carrot2}
+\label{sec:Carrot}
+
+Carrot is an open-source search result clustering engine.
+Carrot$^2$ offers ready-to-use components for fetching search results from
+various sources.
+
+Typically, it fetch search results from an external search engine
+\begin{verbatim}
+Bing search API
+PubMed
+Lucene index
+OpenSearch
+Solr server
+Generic XML files
+eTools metasearch
+\end{verbatim}
+Lucene / Solr index or load text files from a local disk. We can add support for
+others using code examples provided.

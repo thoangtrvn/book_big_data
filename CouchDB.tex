@@ -1,0 +1,25 @@
+\chapter{CouchDB}
+\label{chap:CouchDB}
+
+CouchDB is a new, open-source NoSQL database system. The data is stored in JSON
+format. To query the data, JavaScript is the query language using MapReduce,
+HTTP protocol. Unlike MongoDB which has only one master node, CouchDB has
+multi-master replication.  The master node contains document metadata.
+Document metadata contains revision information, making it possible to merge any
+differences that may have occurred while the databases were disconnected.
+Multi-version Concurrency Control (MVCC) is used in CouchDB, which avoid locking
+the database file during writes. Thus, conflicts are left to the application to
+resolve.
+
+CouchDB was first released in 2005, and become Apache first level project in
+2008.
+
+CouchDB use document-like architecture, i.e. each database is a collection of
+independent documents. Each document maintains its own data and self-contained
+schema.
+
+
+As a distributed database system, one can be stored on the phone and one on the
+server. An application can access CouchDB data from multiple databases.
+
+\url{http://en.wikipedia.org/wiki/CouchDB}

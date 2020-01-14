@@ -1,0 +1,160 @@
+\chapter{Large-scale Graph Data}
+\label{chap:GraphData_LargeScale}
+
+Despite its prominent role in big data analytics, MapReduce
+(Sect.\ref{sec:MapReduce}) is not the optimal programming model for graph
+processing. From the graph-processing point of view, the basic MapReduce
+programming model is inadequate because most graph algorithms are iterative and
+traverse the graph in some way. Thus, Hadoop and its associated technologies
+(such as Pig and Hive) were not designed mainly to support scalable processing
+of graph-structured data.
+\url{http://www.ibm.com/developerworks/library/os-giraph/}
+
+\begin{mdframed}
+Efforts to extend Hadoop for graph-based data include:
+Surfer and GBASE.
+\end{mdframed}
+
+\section{Introduction}
+
+\subsection{Graphs}
+
+Graphs are abstract data structures that model structural relationships among
+objects. It use graph structure with nodes, edges and properties to represent and store
+data.
+\begin{itemize}
+  \item nodes: represent entities (like a table in RDBMS)
+  
+  Each entity has properties
+  
+  \item properties: pertinent information that relate to nodes and edges
+  
+  \item edges: lines that connect nodes to nodes and represent the relationship
+  
+  \item faster than RDBMS for associative data sets
+  
+  \item scale more naturally to large dataset as they do not require expensive
+  join operations
+\end{itemize}
+
+In the most common sense, a graph is an ordered pair $G=(V,E)$ comprising a set $V$ 
+of {\bf vertices} or {\bf nodes}, together with a set $E$ of {\bf edges} or {\bf lines}.
+$V$ and $E$ are usually taken to be finite, and many well-known results are not true for infinite graphs.
+\begin{itemize}
+  \item the {\bf order} of a graph is the number of vertices, |$V$|.
+  \item the {\bf size} of a graph is the number of edges, |$E$|.
+  \item the {\bf degree of a vertex} is the number of edges that connect to it. NOTE:
+  an edge that connect to the vertex at both ends (a loop) is counted twice.
+\end{itemize}
+
+\subsection{Graphs and Linear Algebra}
+
+The adjacency matrix of an unidirected graph is a (0,1)-matrix, after all. This
+makes linear algebra a natural language and tool to deal with graph.
+
+A graph ()
+
+\subsection{Applications}
+
+Many practical problems can be represented by graphs.
+They are now widely used for data modeling in application domains for which
+identifying relationship patterns, rules, and anomalies is useful.
+
+Applications that use graph-based representation of data include:
+web graph, social networks, the Semantic Web, knowledge bases, protein-protein
+interaction networks, and bibliographical networks, among many others.
+
+\begin{itemize}
+  \item Computer Science: networks of communication, data organization, computational devices, flow of computation.
+  
+\begin{itemize}
+  \item Web graph: Google estimates that the total number of web pages exceeds 1 trillion;
+experimental graphs of the World Wide Web contain more than 20 billion nodes
+(pages) and 160 billion edges (hyperlinks).
+  
+  \item Social networks: Facebook reportedly consists of more than a billion
+  users (nodes) and more than 140 billion friendship relationships (edges) in
+  2012. The LinkedIn network contains almost 8 million nodes and 60 million
+  edges.
+  
+  \item Semantic Web:  the ontology of DBpedia (derived from Wikipedia),
+  currently contains 3.7 million objects (nodes) and 400 millions facts (edges).
+\end{itemize}
+  
+  \item Chemistry: natural model for a molecule (vertices = atoms, edges=bonds)
+  and can be used iin computer processing of molecular structures (e.g. chemical editors, database searching)
+  
+\end{itemize}
+
+ 
+Hence, the efficiency of graph computations depends heavily on interprocessor
+bandwidth as graph structures are sent over the network iteration after
+iteration.  To implement iterative programs, programmers might manually issue
+multiple MapReduce jobs and orchestrate their execution with a driver program.
+This manual orchestration of an iterative program in MapReduce has two key
+problems: 
+\begin{enumerate}
+  \item if much data is unchanged, reload and reprocess at each iteration wastes
+  I/O, network bandwidth, and processor resources.
+  
+  \item synchronization again increases resources in terms of scheduling extra
+  tasks, reading extra data from disks, and moving data across network.
+\end{enumerate}
+
+
+Examples:
+\begin{enumerate}
+  \item Neo4j
+  \item OrientDB
+  \item HyperGraphDB
+  \item Titan: distributed, real-time, scalable 
+  \item GraphBase
+  
+\end{enumerate}
+
+There are different graph models:
+\begin{itemize}
+  \item RDF
+  \item Property Graph
+  
+  \item Labeled and Directed Attributed Multigraph:
+  
+  \item Attributed Multigraph
+
+  \item Mixed, Framework-managed Simple Graph
+  
+  \item Object-oriented multi-relational labeled hypergraph
+  
+  \item Dynamically typed, object-oriented graph, multigraph, semantic models
+  
+  \item Triplestore
+\end{itemize}
+
+
+\section{Apache Giraph}
+\label{sec:giraph}
+
+Giraph, a distributed and fault-tolerant system that adopts the {\it Bulk
+Synchronous Parallel} (BSP) programming model to run parallel algorithms for
+processing large-scale graph data.
+
+
+
+\section{GraphLab}
+\label{sec:GraphLab}
+
+GraphLab, a graph-based, high-performance, distributed computation framework
+that is written in C++
+
+
+\section{GraphX}
+\label{sec:GraphX}
+
+
+GraphX is built on top of Sparks (Spark SQL, Spark Streaming), MLlib (machine
+learning).
+
+\url{https://spark.apache.org/graphx/}
+
+\section{Tinkerpop}
+\label{sec:Tinkerpop}

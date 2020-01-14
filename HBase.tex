@@ -1,0 +1,1272 @@
+\chapter{HBase}
+\label{chap:HBase}
+
+HBase is a distributed NoSQL database that stores data in HDFS
+(Sect.\ref{sec:HadoopFS}). HBase operations do not use MapReduce (Apache Hive is
+the one that use MapReduce - Chap.\ref{chap:Hive_PrestoDB}) and thus provides a real-time
+data access. Use it when you need  random, realtime read/write access to your
+Big Data. This project's goal is the hosting of very large tables -- billions of
+rows X millions of columns -- atop clusters of commodity hardware. HBase is
+developed based on Google Bigtable (Chap.\ref{chap:google_bigtable}).
+
+Based on Eric Brewer's CAP theorem, HBase is a CP type system (Consistency,
+Partition Tolerance). HBase isn't fully ACID compliant, although it does support
+certain properties. \url{https://www.xplenty.com/blog/2014/05/hive-vs-hbase/}
+
+\section{Concepts}
+
+HBase's data model is in the form of tables, consisting of rows and columns.
+However, the concept of table in HBase is totally different from that in
+relational database systems (MySQL, Oracle, \ldots). The concept of rows and
+columns are also different. 
+
+HBase is very much a distributed database; and it is more a ``Data Store'' than
+a ``Data Base''  as it lacks many features found in a RDBMS (e.g. typed
+columns, secondary indexes, triggers, advanced query languages\ldots). Languages
+to query data stored in HBase is discussed in Sect.\ref{sec:query-HBase}.
+
+
+{\bf WHEN TO USE HBase?}
+\begin{enumerate}
+  \item the data must be extremely large
+
+Even HDFS doesn't do well with anything less than 5 DataNodes.
+  
+  \item your data can live outside RDBMS
+  
+  An application built against an RDBMS cannot be "ported" to HBase by simply
+  changing a JDBC driver, for example. Consider moving from an RDBMS to HBase as
+  a complete redesign as opposed to a port. 
+  
+\end{enumerate}
+
+
+\url{http://hbase.apache.org/book/architecture.html}
+
+\begin{enumerate}
+  \item Table names are Strings and composed
+of characters that are safe for use in a file system path.
+
+  \item Row: Within a table, data is stored according to its row. Rows are identified
+uniquely by their row key. Row keys do not have a data type and are always
+treated as a byte[ ] (byte array).
+
+Row keys are the equivalent of primary keys in relational
+database tables. You cannot choose to change which column in an HBase table will
+be the row key after the table has been set up
+
+  \item Column Family: Data within a row is grouped by column family. Column
+families also impact the physical arrangement of data stored in HBase. For this
+reason, \textcolor{red}{they must be defined up front and are not easily
+modified}.
+
+
+Every row in a table has the same column families, although a row need not store
+data in all its families. Column families are Strings and composed of characters that are safe
+for use in a file system path.
+
+
+  \item Column Qualifier: Data within a column family is addressed via its column
+qualifier, or simply, column. Column qualifiers need not be specified in advance.
+
+
+Column qualifiers need not be consistent between rows. Like row keys, column
+qualifiers do not have a data type and are always treated as a byte[ ].
+
+  \item Cell: A combination of row key, column family, and column qualifier uniquely
+identifies a cell. The data stored in a cell is referred to as that cell's value. Values
+also do not have a data type and are always treated as a byte[ ].
+
+  \item Timestamp: Values within a cell are versioned. Versions are identified by their
+version number, which by default is the timestamp of when the cell was written.
+If a timestamp is not specified during a write, the current timestamp is used. If
+the timestamp is not specified for a read, the latest one is returned. The number
+of cell value versions retained by HBase is configured for each column family.
+The default number of cell versions is three. 
+\end{enumerate}
+
+there are various ways of describing this data model. You can
+view the same thing as if it's a key-value store, where the key
+is the row key and the value is the rest of the data in a column.
+You can also consider
+HBase to be a key-value store where the key is defined as row key, column family,
+column qualifier, timestamp, and the value is the actual data stored in the cell.
+
+\textcolor{red}{In HBase, Key is
+formed by [row key, column family, column qualifier, timestamp] and Value is the
+contents of the cell.}
+
+\section{Design a HBase table}
+
+Designing HBase tables
+can be defined as answering the following questions in the context of a use case:
+\begin{verbatim}
+1.	What should the row key structure be and what should it contain?
+2.	How many column families should the table have?
+3.	What data goes into what column family?
+4.	How many columns are in each column family?
+5.	What should the column names be? Although column names don't need to be
+defined on table creation, you need to know them when you write or read data.
+6.	What information should go into the cells?
+7.	How many versions should be stored for each cell?
+\end{verbatim}
+In
+order to define that effectively, it is important to define the access patterns (read
+as well as write) up front
+
+
+
+\section{Cluster structure for HBase}
+
+
+Make sure that user name of all machines and the path where the hbase is
+installed are same in all machines. There are 3 types of nodes
+\begin{enumerate}
+  \item HBase Master:  responsible for assigning regions to HbaseRegionserver,
+  monitors the health of each HbaseRegionserver
+  
+  \item ZooKeeper: a centralized service for maintaining configuration
+  information, naming, providing        distributed synchronization, and providing group services.
+  
+  \item HBase RegionServer:  responsible for handling client read and write
+  requests. It communicates with the Hbasemaster to get a list of regions to serve and to tell the master that it is alive.
+\end{enumerate}
+We can configure one machine in the cluster is designated as Hbase master and
+Zookeeper. These master processes may be collocated with the Hadoop NameNode and
+ResourceManager (oldname: JobTracker) for small clusters.
+
+\section{Install}  
+
+You can either (1) downloaded the pre-compiled version, or (2) compile from
+source. 
+
+\subsection{Pre-built}
+
+The pre-compiled version can be downloaded from
+\url{http://www.apache.org/dyn/closer.cgi/hbase/}.
+The latest version is 0.99.1 (Oct-2014) which is a "developer preview" release.
+
+\subsection{Build from source}
+
+It is more complicated when you build from source. I will walk through the
+complexity behind building HBase. From HBase 0.96, the project is split into
+multiple modules
+\begin{verbatim}
+hbase-annotations
+hbase-assembly
+hbase-checkstyle
+hbase-client
+hbase-common
+hbase-examples
+hbase-hadoop1-compat
+hbase-hadoop2-compat
+hbase-hadoop-compat
+hbase-it
+hbase-prefix-tree
+hbase-protocol
+hbase-rest
+hbase-server
+hbase-shell
+hbase-testing-util
+hbase-thrift
+\end{verbatim}
+
+With HBase 0.98.8, the default Hadoop 2 is 2.2.0. If you have Hadoop 2.5.2, you
+need to modify pom.xml to use the new default Hadoop version.
+
+First, you need to have Hadoop installed with HDFS (Chap.\ref{chap:Hadoop}) and
+Java configured (Sect.\ref{sec:configure_Java}). Then, you can try with the
+following command
+\begin{verbatim}
+mvn clean install
+mvn clean install -DskipTests
+\end{verbatim}
+The problem is that \verb!Hbase-rest! requires root privilege to create some
+folder (Sect.\ref{sec:Hbase-rest-test}). However, when we use \verb!sudo!, the
+compiled modules are stored in the \verb!/root/.m2/repository!, instead of your current user home directory.
+
+\begin{verbatim}
+sudo mvn clean install
+sudo mvn clean install -DskipTests
+\end{verbatim}
+If you're succeed, it will generate HBase artifacts and Maven POM files and
+install them int your local Maven repository \verb!~/.m2/repository!
+(Troubleshoot: Sect.\ref{sec:troubleshoot_build}). 
+
+Now we generate binary tarball to install on the cluster. 
+\begin{verbatim}
+mvn package
+mvn assembly:single
+\end{verbatim}
+which creates
+\begin{verbatim}
+./target/hbase-0.98.8-yourversion.tar.gz
+\end{verbatim}
+Finally, copy the tarball that was generated in the last step to your cluster
+and unpack them in the desired location, e.g. /usr/local/hbase-0.98.8.
+\url{http://praveen.kumar.in/2011/06/20/building-hadoop-and-hbase-for-hbase-maven-application-development/}
+
+IMPORTANT: We can do all of them in a single command
+\begin{verbatim}
+mvn -DskipTests clean install package assembly:single
+
+mvn -DskipTests clean install package && mvn -DskipTests assembly:single
+\end{verbatim}
+
+If there is any error, try to build modules one by one
+(Sect.\ref{sec:hbase_build_one-by-one}).
+
+\subsection{HBase build module-by-module}
+\label{sec:hbase_build_one-by-one}
+
+Based on the pom.xml, the build order is
+\begin{verbatim}
+[INFO] HBase - Annotations
+[INFO] HBase - Common
+[INFO] HBase - Protocol
+[INFO] HBase - Client  (depends annotations,common,protocol)
+[INFO] HBase - Hadoop Two Compatibility (i.e. hbase-hadoop-compat)
+[INFO] HBase - Prefix Tree (depends annotations,commmon,hadoop-compat)
+[INFO] HBase - Server (depends annotations,common,protocol,client,hadoop-compat) 
+[INFO] HBase - Testing Util (depends annotations,common,protocol,
+                                 client,server,hadoop-compat)
+[INFO] HBase - Thrift (depends annotations,common,protocol,client,
+                                 server,hadoop-compat,testing-util,
+                                 ${compat.module} which can be hadoop1-compat or
+                                                               hadoop2-compat
+                      )
+[INFO] HBase - Rest   (depends annotations,common,protocol,client,
+                                 server,hadoop-compat,testing-util,
+                                 ${compat.module} which can be hadoop1-compat or
+                                                               hadoop2-compat
+                      )
+[INFO] HBase - Shell  (depends annotations,common,protocol,client,
+                                 server,hadoop-compat,testing-util,
+                                 ${compat.module} which can be hadoop1-compat or
+                                                               hadoop2-compat
+                      )
+[INFO] HBase - Integration Tests (it)
+[INFO] HBase - Examples (depends annotations,common,protocol,client,
+                                 server,hadoop-compat,testing-util, thrift,
+                         )
+[INFO] HBase - Assembly  (depends annotations,common,protocol,client,
+                                 server,hadoop-compat,testing-util,
+                                 it,
+                                 ${compat.module} which can be hadoop1-compat or
+                                                               hadoop2-compat
+                         )
+\end{verbatim}
+and the build cycle is
+\begin{verbatim}
+[validate, initialize, generate-sources, process-sources, generate-resources,
+process-resources, compile, process-classes, generate-test-sources, 
+process-test-sources, generate-test-resources, process-test-resources, 
+test-compile, process-test-classes, test, prepare-package, package, 
+pre-integration-test, integration-test, post-integration-test, 
+verify, install, deploy]
+\end{verbatim}
+The important stages are \verb!package!, \verb!install! and \verb!deploy!. We
+try the first module \verb!hbase-annotations! and \verb!package! command
+\begin{verbatim}
+mvn -e install -pl hbase-annotations -e -X 2>&1 | tee
+       ../mhbase-annotations.txt
+mvn -e install -pl hbase-common -e -X 2>&1 | tee
+       ../mhbase-common.txt
+mvn -e install -pl hbase-protocol -e -X 2>&1 | tee
+       ../mhbase-protocol.txt
+mvn -e install -pl hbase-client -e -X 2>&1 | tee
+       ../mhbase-client.txt
+mvn -e install -pl hbase-hadoop-compat -e -X 2>&1 | tee
+       ../mhbase-hadoop-compat.txt
+mvn -e install -pl hbase-hadoop2-compat -e -X 2>&1 | tee
+       ../mhbase-hadoop2-compat.txt
+mvn -e install -pl hbase-prefix-tree -e -X 2>&1 | tee
+       ../mhbase-prefix-tree.txt       
+mvn -e install -pl hbase-server -e -X 2>&1 | tee
+       ../mhbase-server.txt
+       
+\end{verbatim}
+NOTE: Do not use parallel threads (e.g. -T 8) during debug.
+Check the output error in \verb!../mhbase-annotations.txt! file.
+
+If you success, the result will be copied to 
+\begin{verbatim}
+~/.m2/repository/org/apache/hbase/hbase-annotations/0.98.8/
+\end{verbatim}
+Example:
+\begin{verbatim}
+[INFO] Installing /home/hadoop/hbase-0.98.8/hbase-annotations/target/hbase-annotations-0.98.8.jar to /home/hadoop/.m2/repository/org/apache/hbase/hbase-annotations/0.98.8/hbase-annotations-0.98.8.jar
+[DEBUG] Writing resolution tracking file /home/hadoop/.m2/repository/org/apache/hbase/hbase-annotations/0.98.8/_maven.repositories
+[INFO] Installing /home/hadoop/hbase-0.98.8/hbase-annotations/pom.xml to /home/hadoop/.m2/repository/org/apache/hbase/hbase-annotations/0.98.8/hbase-annotations-0.98.8.pom
+[DEBUG] Writing resolution tracking file /home/hadoop/.m2/repository/org/apache/hbase/hbase-annotations/0.98.8/_maven.repositories
+[DEBUG] Installing org.apache.hbase:hbase-annotations/maven-metadata.xml to /home/hadoop/.m2/repository/org/apache/hbase/hbase-annotations/maven-metadata-local.xml
+[INFO] Installing /home/hadoop/hbase-0.98.8/hbase-annotations/target/hbase-annotations-0.98.8-tests.jar to /home/hadoop/.m2/repository/org/apache/hbase/hbase-annotations/0.98.8/hbase-annotations-0.98.8-tests.jar
+[DEBUG] Writing resolution tracking file /home/hadoop/.m2/repository/org/apache/hbase/hbase-annotations/0.98.8/_maven.repositories
+[DEBUG] Installing org.apache.hbase:hbase-annotations/maven-metadata.xml to /home/hadoop/.m2/repository/org/apache/hbase/hbase-annotations/maven-metadata-local.xml
+\end{verbatim}
+
+
+Using the \verb!-e -X! options, we will see that the following packages will be
+created (for a full build)
+\begin{verbatim}
+[DEBUG] === REACTOR BUILD PLAN ================================================
+[DEBUG] Project: org.apache.hbase:hbase-annotations:jar:0.98.8
+[DEBUG] Tasks:   [package]
+[DEBUG] Style:   Regular
+[DEBUG] -----------------------------------------------------------------------
+[DEBUG] Project: org.apache.hbase:hbase-common:jar:0.98.8
+[DEBUG] Tasks:   [package]
+[DEBUG] Style:   Regular
+[DEBUG] -----------------------------------------------------------------------
+[DEBUG] Project: org.apache.hbase:hbase-client:jar:0.98.8
+[DEBUG] Tasks:   [package]
+[DEBUG] Style:   Regular
+[DEBUG] -----------------------------------------------------------------------
+[DEBUG] Project: org.apache.hbase:hbase-hadoop2-compat:jar:0.98.8
+[DEBUG] Tasks:   [package]
+[DEBUG] Style:   Regular
+[DEBUG] -----------------------------------------------------------------------
+[DEBUG] Project: org.apache.hbase:hbase-prefix-tree:jar:0.98.8
+[DEBUG] Tasks:   [package]
+[DEBUG] Style:   Regular
+[DEBUG] -----------------------------------------------------------------------
+[DEBUG] Project: org.apache.hbase:hbase-server:jar:0.98.8
+[DEBUG] Tasks:   [package]
+[DEBUG] Style:   Regular
+[DEBUG] -----------------------------------------------------------------------
+[DEBUG] Project: org.apache.hbase:hbase-testing-util:jar:0.98.8
+[DEBUG] Tasks:   [package]
+[DEBUG] Style:   Regular
+[DEBUG] -----------------------------------------------------------------------
+[DEBUG] Project: org.apache.hbase:hbase-thrift:jar:0.98.8
+[DEBUG] Tasks:   [package]
+[DEBUG] Style:   Regular
+[DEBUG] -----------------------------------------------------------------------
+[DEBUG] Project: org.apache.hbase:hbase-rest:jar:0.98.8
+[DEBUG] Tasks:   [package]
+[DEBUG] Style:   Regular
+[DEBUG] -----------------------------------------------------------------------
+[DEBUG] Project: org.apache.hbase:hbase-shell:jar:0.98.8
+[DEBUG] Tasks:   [package]
+[DEBUG] Style:   Regular
+[DEBUG] -----------------------------------------------------------------------
+[DEBUG] Project: org.apache.hbase:hbase-it:jar:0.98.8
+[DEBUG] Tasks:   [package]
+[DEBUG] Style:   Regular
+[DEBUG] -----------------------------------------------------------------------
+[DEBUG] Project: org.apache.hbase:hbase-examples:jar:0.98.8
+[DEBUG] Tasks:   [package]
+[DEBUG] Style:   Regular
+[DEBUG] -----------------------------------------------------------------------
+[DEBUG] Project: org.apache.hbase:hbase-assembly:pom:0.98.8
+[DEBUG] Tasks:   [package]
+[DEBUG] Style:   Regular
+[DEBUG] =======================================================================
+[DEBUG] Thread pool size: 8
+[INFO] Building with 8 threads
+[DEBUG] Scheduling: MavenProject: org.apache.hbase:hbase-annotations:0.98.8 @ /home/hadoop/hbase-0.98.8/hbase-annotations/pom.xml
+\end{verbatim}
+
+Regardless of the module to be built, this is the process
+\begin{enumerate}
+  \item Use Maven enforcer plugin: to check Maven version, JDK version, O/S
+  family, etc.
+\begin{verbatim}
+<configuration>
+  <fail default-value="true">${enforcer.fail}</fail>
+  <failFast default-value="false">${enforcer.failFast}</failFast>
+  <ignoreCache default-value="false">${enforcer.ignoreCache}</ignoreCache>
+  <project>${project}</project>
+  <rules>
+    <requireMavenVersion>
+      <version>[3.0.3,)</version>
+      <message> ... </message>
+    </requireMavenVersion>
+    <requireJavaVersion>
+      <version>[1.6,)</version>
+      <message> ... </message>
+    </requireJavaVersion>
+  </rules>
+  <session>${session}</session>
+  <skip default-value="false">${enforcer.skip}</skip>
+</configuration>
+\end{verbatim}
+
+Output:
+\begin{verbatim}
+[DEBUG] Detected Maven Version: 3.0.5
+[DEBUG] Detected Maven Version: 3.0.5 is allowed in the range [3.0.3,).
+[DEBUG] Executing rule: org.apache.maven.plugins.enforcer.RequireJavaVersion
+[DEBUG] Rule org.apache.maven.plugins.enforcer.RequireJavaVersion is cacheable.
+[DEBUG] Detected Java String: 1.8.0_25
+[DEBUG] Normalized Java String: 1.8.0-25
+[DEBUG] Parsed Version: Major: 1 Minor: 8 Incremental: 0 Build: 25 Qualifier: null
+[DEBUG] Detected JDK Version: 1.8.0-25 is allowed in the range [1.6,).
+
+\end{verbatim}
+
+  \item Use JaCoCo plugin for code coverage analysis at runtime. (see Maven
+  chapter in Java manual)
+  
+  \item Retrieve JARs from remote repositories using Maven Remote Resources
+  plugin
+  
+\end{enumerate}
+
+\begin{Verbatim}
+[DEBUG] Source directories: [/home/hadoop/hbase-0.98.8/hbase-annotations/src/main/java]
+[DEBUG] Classpath: [/home/hadoop/hbase-0.98.8/hbase-annotations/target/classes
+ /usr/lib/jvm/java-8-oracle/jre/../lib/tools.jar
+ /home/hadoop/.m2/repository/com/github/stephenc/findbugs/findbugs-annotations/1.3.9-1/findbugs-annotations-1.3.9-1.jar
+ /home/hadoop/.m2/repository/log4j/log4j/1.2.17/log4j-1.2.17.jar
+ /home/hadoop/.m2/repository/junit/junit/4.11/junit-4.11.jar
+ /home/hadoop/.m2/repository/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar]
+\end{Verbatim}
+
+\begin{verbatim}
+Setting project property: settings.localRepository -> /home/hadoop/.m2/repository
+Setting project property: org.apache.hbase:hbase-annotations:jar -> /home/hadoop/hbase-0.98.8/hbase-annotations/target/hbase-annotations-0.98.8.jar
+Setting project property: org.apache.hbase:hbase-annotations:test-jar:tests -> /home/hadoop/hbase-0.98.8/hbase-annotations/target/hbase-annotations-0.98.8-tests.jar
+Setting project property: maven.dependency.org.apache.hbase.hbase-annotations.jar.path -> /home/hadoop/hbase-0.98.8/hbase-annotations/target/hbase-annotations-0.98.8.jar
+Setting project property: maven.dependency.jdk.tools.jdk.tools.jar.path -> /usr/lib/jvm/java-8-oracle/jre/../lib/tools.jar
+Setting project property: maven.dependency.org.apache.hbase.hbase-annotations.tests.test-jar.path -> /home/hadoop/hbase-0.98.8/hbase-annotations/target/hbase-annotations-0.98.8-tests.jar
+
+\end{verbatim}
+
+\begin{verbatim}
+Setting project property: localRepository ->        id: local
+      url: file:///home/hadoop/.m2/repository/
+   layout: none
+\end{verbatim}
+
+The version of Hadoop being used (which is important to modified the parameter
+in pom.xml to get to the same version of Hadoop you want to deploy in the
+cluster). With HBase 0.98.8, the default is Hadoop 2.2.0, so you may need to
+change to a different value
+\begin{verbatim}
+Setting project property: maven.dependency.org.apache.hadoop.hadoop-common.jar.path -> /home/hadoop/.m2/repository/org/apache/hadoop/hadoop-common/2.5.2/hadoop-common-2.5.2.jar
+Setting project property: maven.dependency.org.apache.hadoop.hadoop-annotations.jar.path -> /home/hadoop/.m2/repository/org/apache/hadoop/hadoop-annotations/2.5.2/hadoop-annotations-2.5.2.jar
+Setting project property: maven.dependency.org.apache.hadoop.hadoop-auth.jar.path -> /home/hadoop/.m2/repository/org/apache/hadoop/hadoop-auth/2.5.2/hadoop-auth-2.5.2.jar
+Setting project property: org.apache.hadoop:hadoop-common:jar -> /home/hadoop/.m2/repository/org/apache/hadoop/hadoop-common/2.5.2/hadoop-common-2.5.2.jar
+Setting project property: org.apache.hadoop:hadoop-annotations:jar -> /home/hadoop/.m2/repository/org/apache/hadoop/hadoop-annotations/2.5.2/hadoop-annotations-2.5.2.jar
+\end{verbatim}
+
+
+And many other packages
+\begin{verbatim}
+Setting project property: jdk.tools:jdk.tools:jar -> /usr/lib/jvm/java-8-oracle/jre/../lib/tools.jar
+Setting project property: com.google.guava:guava:jar -> /home/hadoop/.m2/repository/com/google/guava/guava/12.0.1/guava-12.0.1.jar
+Setting project property: com.google.code.findbugs:jsr305:jar -> /home/hadoop/.m2/repository/com/google/code/findbugs/jsr305/1.3.9/jsr305-1.3.9.jar
+Setting project property: commons-logging:commons-logging:jar -> /home/hadoop/.m2/repository/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar
+Setting project property: commons-codec:commons-codec:jar -> /home/hadoop/.m2/repository/commons-codec/commons-codec/1.7/commons-codec-1.7.jar
+Setting project property: commons-lang:commons-lang:jar -> /home/hadoop/.m2/repository/commons-lang/commons-lang/2.6/commons-lang-2.6.jar
+Setting project property: commons-collections:commons-collections:jar -> /home/hadoop/.m2/repository/commons-collections/commons-collections/3.2.1/commons-collections-3.2.1.jar
+Setting project property: commons-io:commons-io:jar -> /home/hadoop/.m2/repository/commons-io/commons-io/2.4/commons-io-2.4.jar
+Setting project property: com.google.protobuf:protobuf-java:jar -> /home/hadoop/.m2/repository/com/google/protobuf/protobuf-java/2.5.0/protobuf-java-2.5.0.jar
+Setting project property: commons-cli:commons-cli:jar -> /home/hadoop/.m2/repository/commons-cli/commons-cli/1.2/commons-cli-1.2.jar
+Setting project property: org.apache.commons:commons-math3:jar -> /home/hadoop/.m2/repository/org/apache/commons/commons-math3/3.1.1/commons-math3-3.1.1.jar
+Setting project property: xmlenc:xmlenc:jar -> /home/hadoop/.m2/repository/xmlenc/xmlenc/0.52/xmlenc-0.52.jar
+Setting project property: commons-httpclient:commons-httpclient:jar -> /home/hadoop/.m2/repository/commons-httpclient/commons-httpclient/3.1/commons-httpclient-3.1.jar
+Setting project property: commons-net:commons-net:jar -> /home/hadoop/.m2/repository/commons-net/commons-net/3.1/commons-net-3.1.jar
+Setting project property: org.mortbay.jetty:jetty:jar -> /home/hadoop/.m2/repository/org/mortbay/jetty/jetty/6.1.26/jetty-6.1.26.jar
+Setting project property: org.mortbay.jetty:jetty-util:jar -> /home/hadoop/.m2/repository/org/mortbay/jetty/jetty-util/6.1.26/jetty-util-6.1.26.jar
+Setting project property: com.sun.jersey:jersey-core:jar -> /home/hadoop/.m2/repository/com/sun/jersey/jersey-core/1.8/jersey-core-1.8.jar
+Setting project property: com.sun.jersey:jersey-json:jar -> /home/hadoop/.m2/repository/com/sun/jersey/jersey-json/1.8/jersey-json-1.8.jar
+Setting project property: org.codehaus.jettison:jettison:jar -> /home/hadoop/.m2/repository/org/codehaus/jettison/jettison/1.3.1/jettison-1.3.1.jar
+Setting project property: com.sun.xml.bind:jaxb-impl:jar -> /home/hadoop/.m2/repository/com/sun/xml/bind/jaxb-impl/2.2.3-1/jaxb-impl-2.2.3-1.jar
+Setting project property: org.codehaus.jackson:jackson-jaxrs:jar -> /home/hadoop/.m2/repository/org/codehaus/jackson/jackson-jaxrs/1.8.8/jackson-jaxrs-1.8.8.jar
+Setting project property: org.codehaus.jackson:jackson-xc:jar -> /home/hadoop/.m2/repository/org/codehaus/jackson/jackson-xc/1.8.8/jackson-xc-1.8.8.jar
+Setting project property: com.sun.jersey:jersey-server:jar -> /home/hadoop/.m2/repository/com/sun/jersey/jersey-server/1.8/jersey-server-1.8.jar
+Setting project property: asm:asm:jar -> /home/hadoop/.m2/repository/asm/asm/3.1/asm-3.1.jar
+Setting project property: tomcat:jasper-compiler:jar -> /home/hadoop/.m2/repository/tomcat/jasper-compiler/5.5.23/jasper-compiler-5.5.23.jar
+Setting project property: tomcat:jasper-runtime:jar -> /home/hadoop/.m2/repository/tomcat/jasper-runtime/5.5.23/jasper-runtime-5.5.23.jar
+Setting project property: commons-el:commons-el:jar -> /home/hadoop/.m2/repository/commons-el/commons-el/1.0/commons-el-1.0.jar
+Setting project property: net.java.dev.jets3t:jets3t:jar -> /home/hadoop/.m2/repository/net/java/dev/jets3t/jets3t/0.9.0/jets3t-0.9.0.jar
+Setting project property: org.apache.httpcomponents:httpclient:jar -> /home/hadoop/.m2/repository/org/apache/httpcomponents/httpclient/4.1.2/httpclient-4.1.2.jar
+Setting project property: org.apache.httpcomponents:httpcore:jar -> /home/hadoop/.m2/repository/org/apache/httpcomponents/httpcore/4.1.2/httpcore-4.1.2.jar
+Setting project property: com.jamesmurty.utils:java-xmlbuilder:jar -> /home/hadoop/.m2/repository/com/jamesmurty/utils/java-xmlbuilder/0.4/java-xmlbuilder-0.4.jar
+Setting project property: commons-configuration:commons-configuration:jar -> /home/hadoop/.m2/repository/commons-configuration/commons-configuration/1.6/commons-configuration-1.6.jar
+Setting project property: commons-digester:commons-digester:jar -> /home/hadoop/.m2/repository/commons-digester/commons-digester/1.8/commons-digester-1.8.jar
+Setting project property: commons-beanutils:commons-beanutils:jar -> /home/hadoop/.m2/repository/commons-beanutils/commons-beanutils/1.7.0/commons-beanutils-1.7.0.jar
+Setting project property: commons-beanutils:commons-beanutils-core:jar -> /home/hadoop/.m2/repository/commons-beanutils/commons-beanutils-core/1.8.0/commons-beanutils-core-1.8.0.jar
+Setting project property: org.slf4j:slf4j-api:jar -> /home/hadoop/.m2/repository/org/slf4j/slf4j-api/1.6.4/slf4j-api-1.6.4.jar
+Setting project property: org.slf4j:slf4j-log4j12:jar -> /home/hadoop/.m2/repository/org/slf4j/slf4j-log4j12/1.7.5/slf4j-log4j12-1.7.5.jar
+Setting project property: org.codehaus.jackson:jackson-core-asl:jar -> /home/hadoop/.m2/repository/org/codehaus/jackson/jackson-core-asl/1.8.8/jackson-core-asl-1.8.8.jar
+Setting project property: org.codehaus.jackson:jackson-mapper-asl:jar -> /home/hadoop/.m2/repository/org/codehaus/jackson/jackson-mapper-asl/1.8.8/jackson-mapper-asl-1.8.8.jar
+Setting project property: org.apache.avro:avro:jar -> /home/hadoop/.m2/repository/org/apache/avro/avro/1.7.4/avro-1.7.4.jar
+Setting project property: com.thoughtworks.paranamer:paranamer:jar -> /home/hadoop/.m2/repository/com/thoughtworks/paranamer/paranamer/2.3/paranamer-2.3.jar
+Setting project property: org.xerial.snappy:snappy-java:jar -> /home/hadoop/.m2/repository/org/xerial/snappy/snappy-java/1.0.4.1/snappy-java-1.0.4.1.jar
+Setting project property: org.apache.hadoop:hadoop-auth:jar -> /home/hadoop/.m2/repository/org/apache/hadoop/hadoop-auth/2.5.2/hadoop-auth-2.5.2.jar
+Setting project property: org.apache.directory.server:apacheds-kerberos-codec:jar -> /home/hadoop/.m2/repository/org/apache/directory/server/apacheds-kerberos-codec/2.0.0-M15/apacheds-kerberos-codec-2.0.0-M15.jar
+Setting project property: org.apache.directory.server:apacheds-i18n:jar -> /home/hadoop/.m2/repository/org/apache/directory/server/apacheds-i18n/2.0.0-M15/apacheds-i18n-2.0.0-M15.jar
+Setting project property: org.apache.directory.api:api-asn1-api:jar -> /home/hadoop/.m2/repository/org/apache/directory/api/api-asn1-api/1.0.0-M20/api-asn1-api-1.0.0-M20.jar
+Setting project property: org.apache.directory.api:api-util:jar -> /home/hadoop/.m2/repository/org/apache/directory/api/api-util/1.0.0-M20/api-util-1.0.0-M20.jar
+Setting project property: com.jcraft:jsch:jar -> /home/hadoop/.m2/repository/com/jcraft/jsch/0.1.42/jsch-0.1.42.jar
+Setting project property: org.apache.zookeeper:zookeeper:jar -> /home/hadoop/.m2/repository/org/apache/zookeeper/zookeeper/3.4.6/zookeeper-3.4.6.jar
+Setting project property: org.apache.commons:commons-compress:jar -> /home/hadoop/.m2/repository/org/apache/commons/commons-compress/1.4.1/commons-compress-1.4.1.jar
+
+Setting project property: org.tukaani:xz:jar -> /home/hadoop/.m2/repository/org/tukaani/xz/1.0/xz-1.0.jar
+Setting project property: org.apache.hadoop:hadoop-mapreduce-client-core:jar -> /home/hadoop/.m2/repository/org/apache/hadoop/hadoop-mapreduce-client-core/2.5.2/hadoop-mapreduce-client-core-2.5.2.jar
+Setting project property: org.apache.hadoop:hadoop-yarn-common:jar -> /home/hadoop/.m2/repository/org/apache/hadoop/hadoop-yarn-common/2.5.2/hadoop-yarn-common-2.5.2.jar
+Setting project property: org.apache.hadoop:hadoop-yarn-api:jar -> /home/hadoop/.m2/repository/org/apache/hadoop/hadoop-yarn-api/2.5.2/hadoop-yarn-api-2.5.2.jar
+Setting project property: javax.xml.bind:jaxb-api:jar -> /home/hadoop/.m2/repository/javax/xml/bind/jaxb-api/2.2.2/jaxb-api-2.2.2.jar
+Setting project property: javax.activation:activation:jar -> /home/hadoop/.m2/repository/javax/activation/activation/1.1/activation-1.1.jar
+Setting project property: javax.servlet:servlet-api:jar -> /home/hadoop/.m2/repository/javax/servlet/servlet-api/2.5/servlet-api-2.5.jar
+Setting project property: com.google.inject:guice:jar -> /home/hadoop/.m2/repository/com/google/inject/guice/3.0/guice-3.0.jar
+Setting project property: javax.inject:javax.inject:jar -> /home/hadoop/.m2/repository/javax/inject/javax.inject/1/javax.inject-1.jar
+Setting project property: aopalliance:aopalliance:jar -> /home/hadoop/.m2/repository/aopalliance/aopalliance/1.0/aopalliance-1.0.jar
+Setting project property: com.sun.jersey.contribs:jersey-guice:jar -> /home/hadoop/.m2/repository/com/sun/jersey/contribs/jersey-guice/1.9/jersey-guice-1.9.jar
+Setting project property: com.google.inject.extensions:guice-servlet:jar -> /home/hadoop/.m2/repository/com/google/inject/extensions/guice-servlet/3.0/guice-servlet-3.0.jar
+Setting project property: io.netty:netty:jar -> /home/hadoop/.m2/repository/io/netty/netty/3.6.6.Final/netty-3.6.6.Final.jar
+Setting project property: com.github.stephenc.findbugs:findbugs-annotations:jar -> /home/hadoop/.m2/repository/com/github/stephenc/findbugs/findbugs-annotations/1.3.9-1/findbugs-annotations-1.3.9-1.jar
+Setting project property: log4j:log4j:jar -> /home/hadoop/.m2/repository/log4j/log4j/1.2.17/log4j-1.2.17.jar
+Setting project property: junit:junit:jar -> /home/hadoop/.m2/repository/junit/junit/4.11/junit-4.11.jar
+Setting project property: org.hamcrest:hamcrest-core:jar -> /home/hadoop/.m2/repository/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
+Setting project property: org.mockito:mockito-all:jar -> /home/hadoop/.m2/repository/org/mockito/mockito-all/1.9.0/mockito-all-1.9.0.jar
+
+Setting project property: maven.dependency.org.apache.directory.server.apacheds-kerberos-codec.jar.path -> /home/hadoop/.m2/repository/org/apache/directory/server/apacheds-kerberos-codec/2.0.0-M15/apacheds-kerberos-codec-2.0.0-M15.jar
+Setting project property: maven.dependency.org.apache.directory.server.apacheds-i18n.jar.path -> /home/hadoop/.m2/repository/org/apache/directory/server/apacheds-i18n/2.0.0-M15/apacheds-i18n-2.0.0-M15.jar
+Setting project property: maven.dependency.org.apache.directory.api.api-asn1-api.jar.path -> /home/hadoop/.m2/repository/org/apache/directory/api/api-asn1-api/1.0.0-M20/api-asn1-api-1.0.0-M20.jar
+Setting project property: maven.dependency.org.apache.directory.api.api-util.jar.path -> /home/hadoop/.m2/repository/org/apache/directory/api/api-util/1.0.0-M20/api-util-1.0.0-M20.jar
+Setting project property: maven.dependency.com.jcraft.jsch.jar.path -> /home/hadoop/.m2/repository/com/jcraft/jsch/0.1.42/jsch-0.1.42.jar
+Setting project property: maven.dependency.org.apache.zookeeper.zookeeper.jar.path -> /home/hadoop/.m2/repository/org/apache/zookeeper/zookeeper/3.4.6/zookeeper-3.4.6.jar
+Setting project property: maven.dependency.org.apache.commons.commons-compress.jar.path -> /home/hadoop/.m2/repository/org/apache/commons/commons-compress/1.4.1/commons-compress-1.4.1.jar
+Setting project property: maven.dependency.org.tukaani.xz.jar.path -> /home/hadoop/.m2/repository/org/tukaani/xz/1.0/xz-1.0.jar
+Setting project property: maven.dependency.org.apache.hadoop.hadoop-mapreduce-client-core.jar.path -> /home/hadoop/.m2/repository/org/apache/hadoop/hadoop-mapreduce-client-core/2.5.2/hadoop-mapreduce-client-core-2.5.2.jar
+Setting project property: maven.dependency.org.apache.hadoop.hadoop-yarn-common.jar.path -> /home/hadoop/.m2/repository/org/apache/hadoop/hadoop-yarn-common/2.5.2/hadoop-yarn-common-2.5.2.jar
+Setting project property: maven.dependency.org.apache.hadoop.hadoop-yarn-api.jar.path -> /home/hadoop/.m2/repository/org/apache/hadoop/hadoop-yarn-api/2.5.2/hadoop-yarn-api-2.5.2.jar
+Setting project property: maven.dependency.javax.xml.bind.jaxb-api.jar.path -> /home/hadoop/.m2/repository/javax/xml/bind/jaxb-api/2.2.2/jaxb-api-2.2.2.jar
+Setting project property: maven.dependency.javax.activation.activation.jar.path -> /home/hadoop/.m2/repository/javax/activation/activation/1.1/activation-1.1.jar
+Setting project property: maven.dependency.javax.servlet.servlet-api.jar.path -> /home/hadoop/.m2/repository/javax/servlet/servlet-api/2.5/servlet-api-2.5.jar
+Setting project property: maven.dependency.com.google.inject.guice.jar.path -> /home/hadoop/.m2/repository/com/google/inject/guice/3.0/guice-3.0.jar
+Setting project property: maven.dependency.javax.inject.javax.inject.jar.path -> /home/hadoop/.m2/repository/javax/inject/javax.inject/1/javax.inject-1.jar
+Setting project property: maven.dependency.aopalliance.aopalliance.jar.path -> /home/hadoop/.m2/repository/aopalliance/aopalliance/1.0/aopalliance-1.0.jar
+Setting project property: maven.dependency.com.sun.jersey.contribs.jersey-guice.jar.path -> /home/hadoop/.m2/repository/com/sun/jersey/contribs/jersey-guice/1.9/jersey-guice-1.9.jar
+Setting project property: maven.dependency.com.google.inject.extensions.guice-servlet.jar.path -> /home/hadoop/.m2/repository/com/google/inject/extensions/guice-servlet/3.0/guice-servlet-3.0.jar
+Setting project property: maven.dependency.io.netty.netty.jar.path -> /home/hadoop/.m2/repository/io/netty/netty/3.6.6.Final/netty-3.6.6.Final.jar
+Setting project property: maven.dependency.com.github.stephenc.findbugs.findbugs-annotations.jar.path -> /home/hadoop/.m2/repository/com/github/stephenc/findbugs/findbugs-annotations/1.3.9-1/findbugs-annotations-1.3.9-1.jar
+Setting project property: maven.dependency.log4j.log4j.jar.path -> /home/hadoop/.m2/repository/log4j/log4j/1.2.17/log4j-1.2.17.jar
+Setting project property: maven.dependency.junit.junit.jar.path -> /home/hadoop/.m2/repository/junit/junit/4.11/junit-4.11.jar
+Setting project property: maven.dependency.org.hamcrest.hamcrest-core.jar.path -> /home/hadoop/.m2/repository/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
+Setting project property: maven.dependency.org.mockito.mockito-all.jar.path -> /home/hadoop/.m2/repository/org/mockito/mockito-all/1.9.0/mockito-all-1.9.0.jar
+\end{verbatim}
+
+
+
+Other version settings that can be a good source for find incompatible
+modules/packages
+\begin{verbatim}
+Setting project property: jamon-runtime.version -> 2.3.1
+Setting project property: commons-cli.version -> 1.2
+Setting project property: jetty.jspapi.version -> 6.1.14
+Setting project property: commons-codec.version -> 1.7
+Setting project property: it.test.jar -> hbase-it-0.98.8-hadoop2-tests.jar
+Setting project property: surefire.skipFirstPart -> false
+Setting project property: package.pid.dir -> /var/run/hbase
+Setting project property: jacoco.version -> 0.6.2.201302030002
+Setting project property: mockito-all.version -> 1.9.0
+Setting project property: maven.build.timestamp.format -> yyyy-MM-dd'T'HH:mm
+Setting project property: java.min.version -> 1.6
+Setting project property: metrics-core.version -> 2.2.0
+Setting project property: surefire.secondPartForkMode -> perThread
+Setting project property: httpclient.version -> 3.1
+Setting project property: project.build.sourceEncoding -> UTF-8
+Setting project property: compat.module -> hbase-hadoop2-compat
+Setting project property: test.output.tofile -> true
+Setting project property: buildDate -> 2014-12-07T11:38
+Setting project property: sourceReleaseAssemblyDescriptor -> source-release
+Setting project property: surefire.firstPartParallel -> classes
+Setting project property: package.log.dir -> /var/log/hbase
+Setting project property: hbase-surefire.cygwin-argline -> -enableassertions -Xmx1900m -XX:MaxPermSize=256m
+      -Djava.security.egd=file:/dev/./urandom -Djava.net.preferIPv4Stack=true
+      "-Djava.library.path=${hadoop.library.path};/usr/java/packages/lib/amd64:/usr/lib64:/lib64:/lib:/usr/lib"
+Setting project property: thrift.version -> 0.9.0
+Setting project property: netty.version -> 3.6.6.Final
+Setting project property: findbugs-maven-plugin.version -> 2.5.2
+Setting project property: package.conf.dir -> /etc/hbase
+Setting project property: commons-math.version -> 2.1
+Setting project property: organization.logo -> http://www.apache.org/images/asf_logo_wide.gif
+Setting project property: compileSource -> 1.6
+Setting project property: commons-lang.version -> 2.6
+Setting project property: joni.version -> 2.1.2
+Setting project property: javadoc.version -> 2.9
+Setting project property: argLine ->
+Setting project property: common.test.jar -> hbase-common-0.98.8-tests.jar
+Setting project property: surefire.firstPartForkMode -> once
+Setting project property: hadoop-one.version -> 1.2.1
+Setting project property: maven.site.version -> 3.3
+Setting project property: collections.version -> 3.2.1
+Setting project property: hadoop.version -> 2.5.2
+Setting project property: gpg.useagent -> true
+Setting project property: hbase-surefire.argLine -> -enableassertions -XX:MaxDirectMemorySize=1G -Xmx1900m
+      -XX:MaxPermSize=256m -Djava.security.egd=file:/dev/./urandom -Djava.net.preferIPv4Stack=true
+      -Djava.awt.headless=true
+\end{verbatim}
+
+
+\begin{verbatim}
+Setting project property: assembly.file -> src/main/assembly/hadoop-two-compat.xml
+Setting project property: package.prefix -> /usr
+Setting project property: surefire.version -> 2.12-TRUNK-HBASE-2
+Setting project property: jaxb-api.version -> 2.2.2
+Setting project property: jersey.version -> 1.8
+Setting project property: tar.name -> hbase-common-0.98.8.tar.gz
+Setting project property: hbase.skip-jacoco -> true
+Setting project property: guava.version -> 12.0.1
+Setting project property: protobuf.version -> 2.5.0
+Setting project property: jruby.version -> 1.6.8
+Setting project property: maven.antrun.version -> 1.6
+Setting project property: distMgmtSnapshotsName -> Apache Development Snapshot Repository
+Setting project property: maven.min.version -> 3.0.3
+Setting project property: server.test.jar -> hbase-server-0.98.8-tests.jar
+Setting project property: package.release -> 1
+Setting project property: htrace.version -> 2.04
+Setting project property: build.platform -> Linux-amd64-64
+Setting project property: jetty.version -> 6.1.26
+Setting project property: arguments ->
+Setting project property: jasper.version -> 5.5.23
+Setting project property: slf4j.version -> 1.6.4
+Setting project property: surefire.secondPartThreadCount -> 2
+Setting project property: maven.assembly.version -> 2.4
+Setting project property: surefire.firstPartGroups -> org.apache.hadoop.hbase.SmallTests
+Setting project property: commons-io.version -> 2.4
+Setting project property: distMgmtSnapshotsUrl -> https://repository.apache.org/content/repositories/snapshots
+Setting project property: commons-logging.version -> 1.1.1
+Setting project property: hadoop-two.version -> 2.5.2
+Setting project property: jamon.plugin.version -> 2.3.4
+Setting project property: surefire.provider -> surefire-junit47
+Setting project property: surefire.skipSecondPart -> false
+Setting project property: maven.resources.plugin.version -> 2.6
+Setting project property: log4j.version -> 1.2.17
+Setting project property: findbugs-annotations -> 1.3.9-1
+Setting project property: surefire.secondPartGroups -> org.apache.hadoop.hbase.MediumTests
+Setting project property: surefire.timeout -> 900
+Setting project property: clover.version -> 2.6.3
+Setting project property: hadoop-snappy.version -> 0.0.1-SNAPSHOT
+Setting project property: jackson.version -> 1.8.8
+Setting project property: final.name -> hbase-common-0.98.8
+Setting project property: surefire.testFailureIgnore -> false
+Setting project property: zookeeper.version -> 3.4.6
+Setting project property: jettison.version -> 1.3.1
+Setting project property: thrift.path -> thrift
+Setting project property: surefire.firstPartThreadCount -> 1
+Setting project property: junit.version -> 4.11
+Setting project property: ant.file -> /home/hadoop/hbase-0.98.8/hbase-common/pom.xml
+
+\end{verbatim}
+
+\begin{verbatim}
+Setting project property: project.groupId -> org.apache.hbase
+Setting project property: project.artifactId -> hbase-common
+Setting project property: project.name -> HBase - Common
+Setting project property: project.description -> Common functionality for HBase
+Setting project property: project.version -> 0.98.8
+Setting project property: project.packaging -> jar
+Setting project property: project.build.directory -> /home/hadoop/hbase-0.98.8/hbase-common/target
+Setting project property: project.build.outputDirectory -> /home/hadoop/hbase-0.98.8/hbase-common/target/classes
+Setting project property: project.build.testOutputDirectory -> /home/hadoop/hbase-0.98.8/hbase-common/target/test-classes
+Setting project property: project.build.sourceDirectory -> /home/hadoop/hbase-0.98.8/hbase-common/src/main/java
+Setting project property: project.build.testSourceDirectory -> /home/hadoop/hbase-0.98.8/hbase-common/src/test/java
+
+\end{verbatim}
+
+The following message is NOT an error, it just information that tells you to
+ignore the quotes around the echoed command line and argument values
+\begin{verbatim}
+The ' characters around the executable and arguments are
+not part of the command.
+\end{verbatim}
+\url{http://stackoverflow.com/questions/2338167/problem-with-ant-file}
+
+The following message means the artifacts with incomplete POM metadata
+\begin{verbatim}
+[DEBUG] Supplemental data models won't be loaded.  No models specified.
+[DEBUG] inceptionYear not specified, defaulting to 2014
+\end{verbatim}
+\url{http://maven.apache.org/plugins-archives/maven-remote-resources-plugin-1.3/xref/org/apache/maven/plugin/resources/remote/ProcessRemoteResourcesMojo.html}
+
+\subsection{Build Hbase-rest}
+\label{sec:Hbase-rest-test}
+
+The HBase-rest has 2 failed tests
+\begin{verbatim}
+testGetClusterStatusXML()
+testGetClusterStatusPB()
+\end{verbatim}
+with the error message
+\begin{verbatim}
+Running org.apache.hadoop.hbase.rest.TestStatusResource
+Tests run: 2, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 106.332 sec <<< FAILURE!
+
+Failed tests:   testGetClusterStatusXML(org.apache.hadoop.hbase.rest.TestStatusResource): 0>= 1
+  testGetClusterStatusPB(org.apache.hadoop.hbase.rest.TestStatusResource): 0>= 1
+
+\end{verbatim}
+
+\begin{verbatim}
+  @Test
+  public void testGetClusterStatusXML() throws IOException, JAXBException {
+    Response response = client.get("/status/cluster", Constants.MIMETYPE_XML);
+    assertEquals(response.getCode(), 200);
+    assertEquals(Constants.MIMETYPE_XML, response.getHeader("content-type"));
+    StorageClusterStatusModel model = (StorageClusterStatusModel)
+      context.createUnmarshaller().unmarshal(
+        new ByteArrayInputStream(response.getBody()));
+    validate(model);
+  }
+
+  @Test
+  public void testGetClusterStatusPB() throws IOException {
+    Response response = client.get("/status/cluster", Constants.MIMETYPE_PROTOBUF);
+    assertEquals(response.getCode(), 200);
+    assertEquals(Constants.MIMETYPE_PROTOBUF, response.getHeader("content-type"));
+    StorageClusterStatusModel model = new StorageClusterStatusModel();
+    model.getObjectFromMessage(response.getBody());
+    validate(model);
+    response = client.get("/status/cluster", Constants.MIMETYPE_PROTOBUF_IETF);
+    assertEquals(response.getCode(), 200);
+    assertEquals(Constants.MIMETYPE_PROTOBUF_IETF, response.getHeader("content-type"));
+    model = new StorageClusterStatusModel();
+    model.getObjectFromMessage(response.getBody());
+    validate(model);
+
+  }
+\end{verbatim}
+
+Strategy to debug (i.e. find out why HBase-rest's test case is not successful).
+NOTE the function \verb!validate()! does the testing job. The function
+\begin{verbatim}
+assertTrue(java.lang.String message, boolean condition)
+assertTrue(boolean condition)  
+\end{verbatim}
+test a condition, and print a message (for the first version) if the conditon is
+not true.
+
+\begin{enumerate}
+  \item Comment out the \verb!validate()! function and return \verb!true!
+\begin{verbatim}
+private static void validate(StorageClusterStatusModel model) {
+  assertTrue(true);
+}  
+\end{verbatim}
+
+  \item Now, we look at the error message from above, it suggests this part of
+  \verb!validate()! function fails
+\begin{verbatim}
+assertTrue(model.getRegions() + ">= 1", model.getRegions() >= 1);
+\end{verbatim}
+ 
+ Now, we go back, remove the \verb!assertTrue(true)! line, and comment out the
+ line
+\begin{verbatim}
+//    assertTrue(model.getRegions() + ">= 1", model.getRegions() >= 1);
+\end{verbatim}
+
+
+\end{enumerate}
+
+\subsection{Build Hbase-it}
+\label{sec:Hbase-it-test}
+
+The HBase-it 0.98.8 has 1 failed test and 1 error test
+\begin{verbatim}
+Running org.apache.hadoop.hbase.IntegrationTestIngestWithACL
+Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 710.409 sec <<< FAILURE!
+Forking command line: /bin/sh -c cd /home/hadoop/hbase-0.98.8/hbase-it && /usr/lib/jvm/java-8-oracle/jre/bin/java -enableassertions -Xmx1900m -Djava.security.egd=file:/dev/./urandom -jar /home/hadoop/hbase-0.98.8/hbase-it/target/surefire/surefirebooter7679010813717069945.jar /home/hadoop/hbase-0.98.8/hbase-it/target/surefire/surefire4488376627296132998tmp /home/hadoop/hbase-0.98.8/hbase-it/target/surefire/surefire_136664039566412713544tmp
+
+Results :
+
+Failed tests:   testIngest(org.apache.hadoop.hbase.IntegrationTestIngestWithACL): Update failed with error code 1
+
+Tests in error: 
+  testBulkLoad(org.apache.hadoop.hbase.mapreduce.IntegrationTestBulkLoad): Unmatched family names found: unmatched family names in HFiles to be bulkloaded: [L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L]; valid family names of table IntegrationTestBulkLoad are: [D, S]
+
+\end{verbatim}
+
+Bug fix: \url{https://issues.apache.org/jira/browse/HBASE-10536}
+
+Tests may not all pass so you may need to pass -DskipTests unless you are
+inclined to fix the failing tests. A work-around solution is to skip the Test
+\begin{verbatim}
+$ mvn -DskipTests install  -pl hbase-it   -e -X 2>&1 | tee ../mhbase-it.txt
+\end{verbatim}
+
+\subsection{Resume the build}
+
+
+Suppose the build stop at \verb!hbase-it! due to some errors, then after fixing
+it, we can continue with \verb!<goals>! is either \verb!compile!, or
+\verb!install! or \ldots
+\begin{verbatim}
+mvn <goals> -rf :hbase-it
+\end{verbatim}
+
+\section{Unit Testing in HBase}
+
+\url{http://blog.cloudera.com/blog/2013/09/how-to-test-hbase-applications-using-popular-tools/}
+
+Unit testing in  HBase application uses JUnit, Mockito, MRUnit, and
+HBaseTestingUtility. HBaseTestingUtility is a mini-cluster
+(Sect.\ref{sec:HBase_mini-cluster}) for integration
+testing (Sect.\ref{sec:HBase_integration_test}).
+
+\subsection{HBase mini-cluster}
+\label{sec:HBase_mini-cluster}
+
+\verb!HBaseTestingUtility! class is used to create an
+instance which is used to keep it around doing HBase testing (see HBase-rest test cases).
+\begin{verbatim}
+public class TestStatusResource {
+  private static final HBaseTestingUtility TEST_UTIL = new HBaseTestingUtility();
+  private static final HBaseRESTTestingUtility REST_TEST_UTIL = 
+    new HBaseRESTTestingUtility();
+  ...
+}
+\end{verbatim}
+\url{http://hbase.apache.org/book/ch19s04.html}
+
+The class definition is
+\begin{verbatim}
+./hbase-server/src/test/java/org/apache/hadoop/hbase/HBaseTestingUtility.java
+\end{verbatim}
+
+\begin{verbatim}
+/* mini-cluster of HBase, no DFS, Zookeeper
+ public MiniHBaseCluster startMiniCluster() throws Exception {
+                         // (#master, #slaves)
+    return startMiniCluster(1, 1);
+  }
+
+  public MiniHBaseCluster startMiniCluster(final int numMasters,
+    final int numSlaves)
+  throws Exception { 
+             // third argument = information of the DataNode-Hosts
+    return startMiniCluster(numMasters, numSlaves, null);
+  }                              
+  
+  // dataNodeHosts[] = the list of string-(hostname/IPs) of the dataNodes
+  // if dataNodeHosts == null, the # of datanodes to start is null as well
+  //                    else   the  # of datanodes to start is given in
+  //                             array length dataNodeHost.length
+ public MiniHBaseCluster startMiniCluster(final int
+  numMasters, final int numSlaves, final String[] dataNodeHosts) throws Exception {
+    return startMiniCluster(numMasters, numSlaves, numSlaves, dataNodeHosts, null, null);
+  }                                                                                        
+  
+  /*  masterClass = the class to use as HMaster (default:null)
+      regionserverclass = the class to use as HRegionServer (default:null)
+  */
+  public MiniHBaseCluster startMiniCluster(final int numMasters,
+      final int numSlaves, final String[] dataNodeHosts, Class<? extends HMaster> masterClass,
+      Class<? extends MiniHBaseCluster.MiniHBaseClusterRegionServer> regionserverClass)
+          throws Exception {
+    return startMiniCluster(
+        numMasters, numSlaves, numSlaves, dataNodeHosts, masterClass, regionserverClass);
+  }         
+\end{verbatim}
+starts up  a minicluster of hbase, optionally dfs, and zookeeper. A cluster data
+directory is named randomly under \verb!System! property \verb!test.build.data!.
+This directory is cleaned up on exit. 
+
+The last class does
+\begin{verbatim}
+// (1)
+// print out
+    LOG.info("Starting up minicluster with " + numMasters + " master(s) and " +                                                                                            
+        numSlaves + " regionserver(s) and " + numDataNodes + " datanode(s)");                                                                                              
+                                                                                
+// (2)
+//  configure cluster TestDir
+   setupClusterTestDir();
+   System.setProperty(TEST_DIRECTORY_KEY, this.clusterTestDir.getPath());
+                                                                                
+// (3)
+// run DFS
+    startMiniDFSCluster(numDataNodes, dataNodeHosts);
+
+// (4)
+// zookeeper
+    if (this.zkCluster == null) {
+      startMiniZKCluster(clusterTestDir);
+    }
+
+// (5) final
+// Start the MiniHBaseCluster
+    return startMiniHBaseCluster(numMasters, numSlaves, masterClass, regionserverClass);
+
+\end{verbatim}
+
+
+\begin{mdframed}
+To interact with the distributed or mini cluster
+uniformly, \verb!IntegrationTestingUtility!, and \verb!HBaseCluster! classes,
+and public client API's can be used. 
+
+IMPORTANT: The use of 
+\begin{verbatim}
+HBaseClusterTestCase
+HBaseTestCase
+\end{verbatim}
+are deprecated. We should use \verb!junit4! and \verb!HBaseTestingUtility!
+(provided by HBase-testing-util module).
+
+\end{mdframed}
+
+
+\subsection{Introduce log in the Unit Tests}
+
+\begin{verbatim}
+import org.apache.commons.logging.Log; 
+import org.apache.commons.logging.LogFactory; 
+
+@Category(MediumTests.class)                                                                                                                                              
+public class TestStatusResource {                                                                                                                                         
+     static final Log LOG = LogFactory.getLog(TestStatusResource.class);
+     
+     ...
+}
+\end{verbatim}
+then in the Unit Test code inside TestStatusResource class, we just add
+\begin{verbatim}
+    LOG.info(" string" + anything here to be printed out); 
+\end{verbatim}
+
+
+\subsection{HBase integration tests}
+\label{sec:HBase_integration_test}
+
+HBase integration/system tests are tests that are beyond HBase unit tests. This
+takes the most of time.
+Integration tests can be run in two modes: using a mini cluster, or against an
+actual distributed cluster. Here, HBase use mini cluster
+(Sect.\ref{sec:HBase_mini-cluster}).
+%  and requires a mini-cluster or a distributed
+% cluster.
+
+
+Integration tests currently live under the src/test directory in the \verb!hbase-it! submodule.
+All integration tests are also annotated with
+\verb!@Category(IntegrationTests.class)!.
+
+
+\begin{verbatim}
+./hbase-rest/src/test/java/org/apache/hadoop/hbase/rest/HBaseRESTTestingUtility.java
+\end{verbatim}
+
+Another important class
+\begin{verbatim}
+./hbase-rest/src/main/java/org/apache/hadoop/hbase/rest/model/StorageClusterStatusModel.java
+\end{verbatim}
+which is used to unmarshal an XML representation of a class
+\begin{verbatim}
+@XmlRootElement(name="ClusterStatus")
+@InterfaceAudience.Private
+public class StorageClusterStatusModel 
+    implements Serializable, ProtobufMessageHandler {
+  private static final long serialVersionUID = 1L;
+
+}
+\end{verbatim}
+
+\section{Troubleshoot}
+\label{sec:troubleshoot_build}
+
+From HBase 0.98, Hadoop 2.x is the default. To build HBase again a particular
+version of Hadoop, we use \verb!hadoop.profile! property
+\begin{verbatim} 
+sudo mvn -Dhadoop.profile=1.0 ....
+\end{verbatim}
+However, the default version in 2.x profile is 2.2.0 (pom.xml)
+\begin{verbatim}
+<hadoop-two.version>2.2.0</hadoop-two.version>
+\end{verbatim}
+You may get Hbase-rest error when you try to compile the HBase code with HDFS
+2.5.2. To resolve the problem, modify it to 
+\begin{verbatim}
+<hadoop-two.version>2.5.2</hadoop-two.version>
+\end{verbatim}
+
+If you get the error
+\begin{verbatim}
+was cached in the local repository, resolution will not be reattempted until
+ the update interval of apache release has elapsed or updates are forced 
+\end{verbatim}
+you can run with \verb!-U! option 
+\begin{verbatim}
+sudo mvn clean compile -U
+\end{verbatim}
+Another solutions
+\begin{itemize}
+  \item  deleting the corresponding failed to download artifact directory in my
+  local repo, and rerun the Maven
+\end{itemize}
+\url{http://stackoverflow.com/questions/4856307/when-maven-says-resolution-will-not-be-reattempted-until-the-update-interval-of}
+
+
+You may get the error
+\begin{verbatim}
+Failed to execute goal on project hbase-assembly: Could not resolve dependencies
+for project org.apache.hbase:hbase-assembly:pom:0.98.8: Could not find artifact
+org.apache.hbase:hbase-it:jar:tests:0.98.8 in maven release (https://repo1.maven.org/maven2/) -> [Help 1]  
+
+org.apache.maven.lifecycle.LifecycleExecutionException: Failed to execute goal
+on project hbase-assembly: Could not resolve dependencies for project 
+org.apache.hbase:hbase-assembly:pom:0.98.8: Could not find artifact
+org.apache.hbase:hbase-it:jar:tests:0.98.8 in maven release
+(https://repo1.maven.org/maven2/)   
+\end{verbatim}
+The reason is that the file
+\begin{verbatim}
+     <dependency>
+        <artifactId>hbase-it</artifactId>
+        <groupId>org.apache.hbase</groupId>
+        <version>${project.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
+      </dependency>
+
+ <it.test.jar>hbase-it-${project.version}-tests.jar</it.test.jar> 
+\end{verbatim}
+cannot be found on the above repositories. The solution is (1) download it to
+local (cached) repository (see the instruction on Maven Chapter) by putting the file
+\begin{verbatim}
+ ~/.m2/repository/org/apache/hbase/hbase-it/0.98.8/hbase-it-0.98.8-tests.jar
+\end{verbatim}
+or, (2) add a new repository that has the file to pom.xml. 
+\begin{verbatim}
+    <repository>
+      <id>apache release</id>
+      <url>https://repo1.maven.org/maven2/</url>
+    </repository>
+\end{verbatim}
+which allow Maven to try downloading the file as
+\begin{verbatim}
+https://repo1.maven.org/maven2/org/apache/hbase/hbase-it/0.98.8/hbase-it-0.98.8.pom
+https://repo1.maven.org/maven2/org/apache/hbase/hbase-it/0.98.8/hbase-it-0.98.8-test.jar
+\end{verbatim}
+
+Unfortunately, using that repository, the path to the file is
+\begin{verbatim}
+https://repo1.maven.org/maven2/org/apache/hbase/hbase-it/0.98.8-hadoop2/hbase-it-0.98.8-hadoop2.pom
+\end{verbatim}
+which means we need to update the version for the package hbase-it-test from
+\begin{verbatim}
+<it.test.jar>hbase-it-${project.version}-tests.jar</it.test.jar> 
+\end{verbatim}
+to 
+\begin{verbatim}
+<it.test.jar>hbase-it-${project.version}-hadoop2-tests.jar</it.test.jar> 
+\end{verbatim}
+
+
+\begin{mdframed}
+To understand more about Maven (\verb!mvn! command), we can read Java manual
+book (Chapter on Maven). After \verb!mvn! is the target name (e.g. package, or
+compile). We can define as many targets as we want. The \verb!compile! target
+does not create .JAR files.
+Potential errors is discussed in Sect.\ref{sec:hbase0.98_java8}.
+
+\end{mdframed}
+
+If you get the error
+\begin{verbatim}
+ERROR Failed to execute goal
+org.apache.maven.plugins:maven-assembly-plugin:2.4:single (default-cli) on
+project hbase-assembly: Failed to create assembly: Artifact:
+org.apache.hbase:hbase-checkstyle:jar:0.98.7 (included by module) does not have
+an artifact with a file.    
+\end{verbatim}
+NOTE: HBase does not use \verb!maven-assembly-plugin! to build in the main
+project, instead it is used in the \verb!hbase-assembly! module.
+\begin{verbatim}
+<!-- in the main projec pom.xml -->
+ <build>
+    <plugins>
+       <plugin>                                                                                                                                                           
+          <artifactId>maven-assembly-plugin</artifactId>                                                                                                                   
+          <version>${maven.assembly.version}</version>                                                                                                                     
+          <configuration>                                                                                                                                                  
+            <!--Defer to the hbase-assembly sub-module.  It                                                                                                                
+             does all assembly-->                                                                                                                                          
+            <skipAssembly>true</skipAssembly>                                                                                                                              
+            <!--Do not attach assembly to project.-->                                                                                                                      
+            <attach>false</attach>                                                                                                                                         
+          </configuration>                                                                                                                                                 
+        </plugin>                             
+    </plugins>
+</build>    
+\end{verbatim}
+
+\subsection{HBase 0.98 and Java 8}
+\label{sec:hbase0.98_java8}
+
+There is a deprecated method that gives the error
+\begin{verbatim}
+PoolMap.java:[100,17] error: name clash: remove(K,V) in PoolMap and
+       remove(Object,Object) in Map 
+\end{verbatim}
+use patch:
+\url{https://issues.apache.org/jira/secure/attachment/12622579/HBASE-10327.patch}
+
+
+\section{Modules in Hbase}
+
+\subsection{hbase-checkstyle}
+
+Module to hold Checkstyle properties in HBase.
+\url{http://maven-repository.com/artifact/org.apache.hbase/hbase-checkstyle}
+
+
+\subsection{HBase-thrift}
+
+HBase-thrift use \verb!org.cloudera.htrace! (check pom.xml of hbase-thrift) 
+\begin{verbatim}
+ <dependency>
+      <groupId>org.apache.hbase</groupId>
+      <groupId>org.cloudera.htrace</groupId>       
+      <artifactId>htrace-core</artifactId>
+ </dependency>         
+\end{verbatim}
+HTrace is a tracing framework intended for use with distributed systems written
+in java.
+
+{\bf IMPORTANT}: From December, 2014, HTrace has moved to Apache Incubator
+\begin{verbatim}
+The project WAS hosted here at http://github.com/cloudera/htrace but as of
+December 2014, it has moved to Apache Incubator. Go to
+http://incubator.apache.org/projects/htrace and
+http://htrace.incubator.apache.org from here on out.  
+
+The old state of the project is available in Maven Central with groupId:
+org.htrace, and name: htrace. The Apache-hosted htrace will have a groupId of
+org.apache.htrace and name htrace. (It was formally at groupId:
+org.cloudera.htrace, and name: htrace).  
+\end{verbatim}
+
+
+\subsection{hbase-rest}
+ 
+HBase REST exposes HBase tables, rows, cells, and metadata as URL specified
+resources via the REST APIs. For any problem when compiling with testing not
+successful, read the Chapter Web Services on RESTful web service on Java manual book.
+
+HBase REST provides a RESTful Web service front end for HBase (Check Java
+manual book on RESTful web service) (Chap.\ref{chap:REST}).
+\url{https://hbase.apache.org/apidocs/org/apache/hadoop/hbase/rest/package-summary.html}
+
+% 
+% In architectural design, there are 2 approaches: (1) start from nothing and
+% build it, (2) start with a system as a whole without constraints, and try to
+% build the relations between the components. Where the first emphasizes
+% creativity and unbounded vision, the second emphasizes restraint and
+% understanding of the system context. {\bf REST} has been developed using the
+% second process.
+% \url{http://www.ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm}
+% 
+% RESTful web service 
+
+
+
+\subsection{hbase-annotations}
+
+Define the annotations for test categories (lightweight, medium, heavy tests)
+\begin{verbatim}
+ hbase-annotations/src/test/java/org/apache/hadoop/hbase/
+   IntegrationTests.java  
+   LargeTests.java        
+   MediumTests.java      
+   SmallTests.java   
+\end{verbatim}
+
+Since HBase 0.99.0+, they are moved to
+\begin{verbatim}
+ hbase-annotations/src/test/java/org/apache/hadoop/hbase/testclassification
+ 
+\end{verbatim}
+
+\section{Large-scale deployment}
+
+Facebook: \url{https://www.facebook.com/note.php?note_id=454991608919}
+ 
+\section{Operations in HBase}
+
+
+HBase works by storing data as key/value. It supports four primary operations:
+put to add or update rows, scan to retrieve a range of cells, get to return
+cells for a specified row, and delete to remove rows, columns or column versions
+from the table. Versioning is available so that previous values of the data can
+be fetched (the history can be deleted every now and then to clear space via
+HBase compactions).     
+
+Although HBase includes tables, a schema is only required for tables and column
+families, but not for columns, and it includes increment/counter functionality. 
+ 
+\section{Query language: HBase API}
+\label{sec:query-HBase}
+
+Data that can be accessed via HBase is stored in HDFS file system.
+Thus, this data stored can be accessed using MapReduce jobs via Hadoop.
+
+Other than that, HBase provides Java client APIs (to access HBase data from your
+Java program); and other non-Jave front-ends via gateway APIs: such as REST,
+Avro or Thrift. 
+
+For high volume query optimization, HBase also support Block Cache and Bloom
+Filters. 
+
+However, an SQL-like query language can be used if Apache Phoenix is installed (Sect.\ref{sec:Phoenix}).
+
+HBase provides build-in web-pages for operational insight as well as JMX
+metrics.
+
+HBase's API for data manipulation consists of three primary methods: Get, Put,
+and Scan.
+\begin{itemize}
+  \item Gets and
+Puts are specific to particular rows and need the row key to be provided
+  \item Scans are
+done over a range of rows.
+
+The range could be defined by a start and stop row key or
+could be the entire table if no start and stop row keys are defined.
+\end{itemize}
+
+
+Now
+\begin{enumerate}
+  \item If you were to retrieve the item that the row key maps to, you'd get data from
+all the columns back
+ 
+  \item If you were to retrieve the item that a particular column
+family maps to, you'd get back all the column qualifiers and the associated maps.
+
+  \item If you were to retrieve the item that a particular column qualifier maps to, you'd get
+all the timestamps and the associated values.
+
+HBase optimizes for typical patterns and returns only the latest version by default.
+You can request multiple versions as a part of your query.
+
+  \item  
+\end{enumerate}
+
+There are various ways to access and interact with Apache HBase. 
+
+\subsection{REST interface}
+
+\subsection{Thrift interface}
+
+
+Thrift is both cross-platform and more lightweight than REST for many
+operations. \url{http://wiki.apache.org/hadoop/Hbase/ThriftApi}
+
+
+\section{Apache Phoenix}
+\label{sec:Phoenix}
+
+Apache Phoenix is a relational database layer over HBase delivered as a
+client-embedded JDBC driver targeting low latency queries over HBase data. 
+
+Apache Phoenix takes your SQL query, compiles it into a series of HBase scans,
+and orchestrates the running of those scans to produce regular JDBC result sets.
+
+\url{http://phoenix.apache.org/}

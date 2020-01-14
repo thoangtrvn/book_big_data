@@ -1,0 +1,52 @@
+\chapter{ElasticSearch}
+\label{chap:elastic_search}
+
+\section{Introductrion}
+
+ElasticSearch is a search server that use Lucene
+(Sect.\ref{sec:Lucene}) as the back-end. Lucene does indexing the given input,
+but it does not do crawling, and ElasticSearch incorporate the crawling feature
+into it.
+
+\subsection{0.5.0}
+
+\url{https://www.elastic.co/downloads/past-releases/elasticsearch-0-5-0}
+
+\begin{verbatim}
+aopalliance-1.0.jar
+elasticsearch-0.5.0.jar
+google-collections-1.0.jar
+guice-2.0.jar
+guice-assisted-inject-2.0.jar
+guice-multibindings-2.0.jar
+jackson-core-asl-1.4.2.jar
+jackson-mapper-asl-1.4.2.jar
+jgroups-2.9.0.GA.jar
+jline-0.9.94.jar
+joda-time-1.6.jar
+log4j-1.2.15.jar
+flucene-analyzers-3.0.1.jar
+lucene-core-3.0.1.jar
+lucene-queries-3.0.1.jar
+netty-3.1.5.GA.jar
+slf4j-api-1.5.8.jar
+slf4j-log4j12-1.5.8.jar
+\end{verbatim}
+
+
+
+\section{Marvel plugin}
+
+Marvel is a plugin for Elasticsearch that helps to provide statistics of the nodes activities
+in the ElasticSearch cluster.
+
+\url{http://www.elasticsearch.com/products/marvel/?_ga=1.97357526.87852203.1421369435}
+
+\section{Elasticsearch Puppet module}
+
+Elasticsearch Puppet module 0.4.0 supports multiple instances of Elasticsearch running on a single machine.
+\url{https://www.elastic.co/blog/elasticsearch-puppet-module-0-4-0-released}
+
+\section{Elasticsearch on Microsoft Azure}
+
+\url{https://www.nuget.org/packages/Microsoft.Experimental.Azure.ElasticSearch/0.4.0-alpha}

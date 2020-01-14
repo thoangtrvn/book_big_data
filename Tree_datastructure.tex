@@ -1,0 +1,194 @@
+\chapter{Tree Data Structures}
+\label{chap:Tree_DataStructure}
+
+\section{Introduction}
+
+\subsection{Minimum fill in tree}
+
+
+\subsection{BST}
+
+Binary search trees (BST), sometimes called ordered or sorted binary trees, are
+a class of data structures used to implement lookup tables and dynamic sets.
+
+Binary search trees keep their keys in sorted order, so that lookup and other
+operations can use the principle of binary search: when looking for a key in a
+tree (or a place to insert a new key), they traverse the tree from root to leaf,
+making comparisons to keys stored in the nodes of the tree and deciding
+
+\url{http://en.wikipedia.org/wiki/Binary_search_tree}
+
+There are many types of binary search trees:
+\begin{enumerate}
+  \item self-balancing binary search tree - Sect.\ref{sec:self_balancing-binary-search-tree}
+  \item splay tree: 
+\end{enumerate}
+
+\subsection{self-balancing binary search tree)}
+\label{sec:self_balancing-binary-search-tree}
+
+It is a node-based binary search tree that automatically keeps its height
+(maximal number of levels below the root) small in the face of arbitrary item
+insertions and deletions. It is being used to implement {\it mutable ordered
+lists}, or other abstract data structures (e.g. associative arrays, priority
+queues, sets).
+
+Two forms of self-balancing binary search tree
+\begin{enumerate}
+  \item Red-Black tree
+  \item AVL tree :
+\end{enumerate}
+
+\section{Splay tree}
+\label{sec:tree_splay}
+
+A splay tree automatically moves frequently accessed elements nearer to the root
+ 
+ 
+\section{B-tree (1972)}
+\label{sec:tree_B}
+
+The B-tree is a generalization of a binary search tree in that a node can have
+more than two children.
+Data is sorted and allows searches, sequential access, insertions, and deletions
+in logarithmic time.
+B-tree is optimized for systems that read and write large blocks of data, i.e.
+widely used in database systems.
+
+B-trees guarantee 50\% page fill
+
+\section{B*-tree}
+
+B*-trees guarantee 66\% page fill, higher than B-tree and R-tree.
+
+\section{R-tree (1984)}
+\label{sec:tree_R}
+
+
+R-tree is widely used to store/index multi-dimentional information, e.g. spatial
+objects. The spatial object is represented by a rectangle, i.e. the "R" in R-tree is for rectangle.
+
+Example of spatial objects are restaurant locations, polygons (e.g. streets,
+buildings, outlines of lakes, coastlines) that make of map.
+It accelerates nearest-neighbor search for various distance metrics.
+
+This allows the system to quickly find an element, such as ``find all museums
+within 2 km of my current location'', or ``retrieve all road segments within 2km
+of my current location'', or ``find the nearest gas station''. The key idea is
+to use the bounding boxes to decide whether or not to search inside a subtree.
+
+The key idea of the data structure is to group nearby objects and represent them
+with their minimum bounding rectangle in the next higher level of the tree. So
+the leaf is the isolated spatial objects, the parent node is the group of nearby
+spatial objects. This parent node is also a spatial object, represented by a
+minimum bounding rectangle.
+
+Similar to the B-tree, the R-tree is also a balanced search tree (so all leaf nodes are at the same height).
+It organizes the data in pages, and is designed for storage on disk.
+Each page can contain a maximum number of entries, often denoted as M.
+
+MINIMUM FILL: It also guarantees a minimum fill (except for the root node).
+However, best performance has been experienced with a minimum fill of 30\%-40\%
+of the maximum number of entries. The reason for this lower minimum fill is the
+more complex balancing required for spatial data as opposed to linear data
+stored in B-trees.
+
+The key difficulty of R-trees is to build an efficient tree that on one hand is
+balanced (so the leaf nodes are at the same height) on the other hand the
+rectangles do not cover too much empty space and do not overlap too much (so
+that during search, fewer subtrees need to be processed).
+
+\section{R*-tree (1990)}
+
+R*-trees have slightly higher construction cost than standard R-trees, as the data may need to be reinserted; but the resulting tree will usually have a better query performance.
+Like the standard R-tree, it can store both point and spatial data. 
+
+
+
+
+\section{S-tree}
+\label{sec:tree_S}
+
+
+
+\section{P-tree}
+\label{sec:tree_P}
+
+
+\section{SP-tree}
+\label{sec:tree_SP}
+
+
+
+\section{Nearest-neighbor searchs}
+
+
+We can store data in
+\begin{itemize}
+  \item R-tree (Sect.\ref{sec:tree_R})
+\end{itemize}
+
+
+\section{Fanout tree (chip design) - 1989}
+\label{sec:tree_fanout}
+
+In a chip, some gates have to drive many sinks or long wires. 
+The propagation delay of the signal on these gates can be improved by repowering the signal with little amplifiers, called {\bf buffers}.
+
+To come up with a best distribution of the buffers, to optimally distribute the
+signals over the chip, a tree structure called {\bf fanout tree} is used.
+ 
+Berman et al. (1989) 
+\url{http://dl.acm.org/citation.cfm?id=90921}
+
+
+\section{RC-tree (chip design) or van Ginneken algorithm - 1990}
+\label{sec:tree_RC}
+
+The RC-tree is a better version of fanout tree (Sect.\ref{sec:tree_fanout}), as it take into account the physical information such as capacitance and RC effects of the wires.
+
+The practical issue is that a large portion of the delay in an IC (integrated circuit) is due to the time it takes to charge and discharge the capacitance
+of the wires and the gates of transistors. Both resistance R and capacitance C increase linearly with the length $l$
+\begin{equation}
+R \approx   r.l \\
+C \approx c.l
+\end{equation}
+
+The RC delay of the wire is 
+\begin{equation}
+D \approx 1/2RC = 1/2 r.c.l^2
+\end{equation}
+which increases quadratically with the length of the wire. This shows that buffering the wiring trees after placement or floor planning is very important.
+
+The RC-tree algorithm developed by van Ginneken is based on 
+\begin{itemize}
+  \item the root of the tree is the source of the signal
+  \item the leafs are the sinks of the signal
+  \item RC-tree model a tree of distributed RC sections, i.e. a node has a resistor R and a capacitance C.
+  
+  \item the capacitance of the surrounding wires is modeled as an extra contribution to the capacitance to ground.
+  \item as computing the exact delay of a wiring tree is difficult, i.e. requires the solution of a set of differential equaitons for the distributed RC sections, a simple estimation of the delay called {\bf Elmore delay} is used.
+  
+  \url{http://en.wikipedia.org/wiki/Elmore_delay}
+  
+  \item other assumptions: preserve charges (i.e. no leakage to ground)  
+\end{itemize}
+Elmore delay is the objective function of the algorithm, i.e. minimize Elmore delay. The Elmore delay is defined as the first order moment of the impulse response $h(t)$
+\begin{equation}
+D = \int^\infty_0 h(t)dt
+\end{equation}
+
+
+
+
+van Ginneken (1990) \url{http://xilinx.asia/_hdl/4/eda.ee.ucla.edu/EE201A-04Spring/buffer_insertion.pdf}
+\url{http://eda.ee.ucla.edu/EE201A-04Spring/lecture9_buffering.ppt}
+
+
+\section{K-d tree: spatially aware data structure}
+
+\url{https://www.afsbirsttr.com/award/AwardDetails.aspx?pk=20392}
+
+\section{Spatial Hash Table: spatially aware data structure}
+
+\url{https://www.afsbirsttr.com/award/AwardDetails.aspx?pk=20392}

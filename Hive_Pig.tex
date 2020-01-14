@@ -1,0 +1,46 @@
+\chapter{Apache Hive and Pig}
+\label{chap:Hive_PrestoDB}
+
+The very earliest versions of Hadoop supported exactly one way of getting at
+data: you need to write your Java code with MapReduce. To enable non-programmers
+to work with the data, Yahoo developed a language of its own, called {\bf
+Apache Pig} (Sect.\ref{sec:pig}). Facebook, on the other hand, developed
+SQL-system called {\bf Apache Hive} (Sect.\ref{sec:hive}) rather than training
+people with a new query language.
+
+{\bf LIMITATIONS}: Like Hadoop's MapReduce, Pig and Hive inherit the
+batch-processing property. To provide real-time processing, Impala was
+developed 
+
+\section{Hive}
+\label{sec:hive}
+
+Apache Hive provides a facilities for query data stored on HDFS via an SQL-like
+language, called HQL. The queries are translated into MapReduce jobs. 
+ALso, data query in Apache Hive is not real-time, but is batch-job processing.
+
+The reason for developing Apache Hive is that it allows SQL savvy to be able to
+use data on HDFS easily. As Apache Hive is JDBC compliant, existing SQL-based
+tools can integrate with Apache Hive to extract data stored in HDFS. 
+Running Hive queries could take a while since they go over all of the data in
+the table by default.
+
+{\bf LIMITATIONS:} \textcolor{red}{Hive does not currently support update
+statements}. Additionally, since it runs batch processing on Hadoop, it can take
+minutes or even hours to get back results for queries. Hive must also be
+provided with a predefined schema to map files and directories into columns and
+it is not ACID compliant.
+
+{\bf USAGE:} Hive should be used for analytical querying of data collected over
+a period of time. 
+
+{\bf NOT TO USE HIVE:} Hive should not be used for real-time querying since it
+could take a while before any results are returned. In that case, we should use
+HBase. 
+
+
+\section{Pig}
+\label{sec:pig}
+
+Rather than provide SQL-like language, Apache Pig provides scripting language
+for accessing and transforming data.

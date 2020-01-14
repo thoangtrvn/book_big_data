@@ -1,0 +1,23 @@
+\chapter{Microsoft SQL Server}
+\label{chap:SQL_Server}
+
+\section{Introduction}
+
+
+\section{Authentication mode}
+\label{sec:SQLServer_authentication_mode}
+
+During setup, you need to choose how to authenticate with the Database Engine. There are two ways
+\begin{enumerate}
+  \item Windows Authentication, i.e. using user's Windows logon account
+  
+  \item Mixed mode, i.e. enable both Windows Authentication and SQL Server Authentication.
+\end{enumerate}
+NOTICE: Windows Authentication is always enabled and cannot be disabled.
+\url{https://msdn.microsoft.com/en-us/library/ms144284.aspx}
+
+The built-in SQL Server system admin account is named \verb!sa!, and you need to set a strong password for 
+this account when Mixed mode is used. If Windows Authentication mode is selected,
+the \verb!sa! account is also created during setup, but it is disabled. The reason for not using Mixed mode
+is that the account name is well-known and thus can be a good target for hacking.
+

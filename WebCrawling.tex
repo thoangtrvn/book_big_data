@@ -1,0 +1,94 @@
+\chapter{Web Crawling}
+\label{chap:WebCrawling}
+
+\section{Introduction}
+
+
+\subsection{screen scraping}
+\label{sec:screen_scrapping}
+
+Originally, screen scrapping refers to the practice of reading text data from
+the terminal's screen, by reading the terminal's memory through its auxiliary
+port. UI from that area were often simply text-based dumped terminals.
+The screen scraper might connect to the legacy system via Telnet, emulate the
+keystrokes needed to navigate the old user interface, process the resulting
+display output, extract the desired data, and pass it on to the modern system.
+
+
+
+
+\subsection{web scraping}
+\label{sec:web_scrapping}
+
+Even though web pages (built from HTML, XHTML) requently contain a wealth of useful data in text form, most have been designed for human end-users, and not for ease of automated use.
+Several tools to scrape web content (known as {\bf web scraper}) have been developed.
+A web scraper provides APIs to extract data from a web site.
+
+Newer forms of web scraping involve listening to data feeds from web servers, e.g. feeds in JSON format.
+Recently, these scrapers rely on using techniques in DOM parsing, computer vision and natural language processing
+that can simulate human processing that occurs when reading a webpage, to automatically extract useful information.
+
+\subsection{Tools}
+
+Scrapy (Python-based tool - Sect.\ref{sec:Scrapy}) which is faster than
+Mechanize but not as scalable as Nutch (Chap.\ref{chap:Nutch}) or Heritrix,
+which means that it's not meant to be used for crawling the entire web, but it's
+OK for crawling a lot (5000+) of sites, even huge ones like Amazon.
+
+
+
+\section{Scrapy (Python-based)}
+\label{sec:Scrapy}
+
+So you need to extract some information from a website, but the website doesn't
+provide any API or mechanism to access that info programmatically. Scrapy can
+help you extract that information.
+
+Scrapy is an application framework for crawling web sites and extracting
+structured data which can be used for a wide range of useful applications, like
+data mining, information processing or historical archival.
+
+
+We should read this in Python manual book.
+
+
+\section{Crawler4j (Java-based)}
+
+You can setup a multi-threaded web crawler in few minutes.
+
+A crawler is a class extend from \verb!WebCrawler! class, with 3 informations need to be provided
+\begin{enumerate}
+  \item the pattern
+  \item override \verb!shoudVisit()! method: decides whether the given URL should be crawled or not.
+  \item override \verb!visit()! method: is called after the content of a URL is downloaded successfull. What it does is
+  to extract the right information you want ( url, text, links, html, and unique id of the downloaded page)
+\end{enumerate}
+
+A controller class is also required, from which you provide the seed URLs.
+
+Other settings:
+\begin{enumerate}
+  \item depth of search: \verb!crawlConfig.setMaxDepthOfCrawling(maxDepthOfCrawling);!
+  
+  \item max number of pages to crawl: \verb!crawlConfig.setMaxPagesToFetch(maxPagesToFetch);!
+  
+  \item politeness, i.e. how often to request a page to a website (default: 200 ms): \verb!crawlConfig.setPolitenessDelay(politenessDelay);!
+  
+  \item run behind proxy or not?
+  
+  \item resume crawling or not?
+  
+  \item agent string: a user agent strings identify what a client (e.g. a web browser, a crawler) is using to access a web-page.
+  
+  \url{http://whatsmyuseragent.com/WhatsAUserAgent}
+\end{enumerate}
+
+\begin{verbatim}
+public class MyCrawler extends WebCrawler {
+
+    private final static Pattern FILTERS = Pattern.compile(".*(\\.(css|js|gif|jpg"
+                                                           + "|png|mp3|mp3|zip|gz))$");
+                                                           
+                                                           
+\end{verbatim}
+\url{https://github.com/yasserg/crawler4j}

@@ -1,0 +1,968 @@
+\chapter{Cloud Computing}
+\label{chap:cloud_computing}
+
+
+In 2006, Amazon launched their Amazon Web Services (AWS) public cloud platform,
+and a new era began. The era of cloud-native applications (Sect.\ref{chap:cloud-native-apps}).
+
+Cloud computing has emerged as an interesting variant on enterprise computing
+(Sect.\ref{sec:enterprise-computing}).
+It provides the capability of flexible allocation of compute resources
+(including processing, network and storage) to support an ever-shifting pool of
+applications, i.e. different business need different softwares that can be
+quickly deployed to the cloud.
+
+{\it Cloud computing is a computing model}, where resources such as computing
+power, storage, network and software are abstracted and provided as services on
+the Internet in a remotely accessible fashion.
+The Cloud refers to the capability of using some service (software and/or
+hardware), provided and hosted somewhere by a cloud-computing provider company,
+from your local computer without having to install the code (e.g. program) or
+infrastructure performing that service. So, this service is not necessary a
+soft-part but can also be a hard-part (e.g. Infrastructure).
+
+This leads to many Cloud Service acronyms such as IaaS, PaaS,
+SaaS, Maas, Caas or Xaas.
+\begin{itemize}
+  \item {\bf IaaS} (Infrastructure as-a-Service) or {\bf HaaS} (Hardware
+  as-a-Service):   the consumer use the infrastructure outsourced by the service
+  provider.
+  
+   The Service Provider not only owns the equipment but will also be responsible
+  for its running and maintenance, where the consumer will be charged on a 'pay
+  as you use' basis. IaaS is often offered as a horizontally integrated service
+  that includes not only the server and storage but also the connectivity
+  domains. This often goes with PaaS, where the consumer select the scope of the
+  service to use (e.g. the environment (O/S, libraries, memory, storage
+  capcity), and how many machines) The Iaas provider would typically provide the
+  replication, backup and archiving (Storage), the powerful computing
+  requirements (Server) or the network load balancing and firewalls
+  (Connectivity domains).
+  
+\begin{mdframed}
+IaaS gives you components you need in order to build things on top of it; PaaS
+gives you an environment where you just push code and some basic configuration
+and get a running application. IaaS gives you more power and flexibility, at the
+cost of having to build more yourself.    
+\end{mdframed}  
+  
+  \item  {\bf PaaS} (Platform as-a-Service): The service provider has a web
+  application that enables the consumer to have a control over the deployed
+  environment, without the complexity of the infrastructure
+  (Sect.\ref{sec:PaaS}).
+  
+  PaaS facilitates immediate business requirements such as application design,
+  development and testing at a fraction of the normal cost.
+  
+  \label{sec:SaaS}
+  \item SaaS (Software as-a-Service): a consumer to use on demand software that
+  is provided by the service provider via a thin client device, e.g. a web
+  browser over the Internet. This include PaaS and IaaS. With SaaS, the consumer
+  has not only no management or control of the infrastructure such as the
+  storage, servers, network, or operating systems, but also no control over the
+  application's capabilities.
+  
+  This include Google Docs, Google Calendar.
+  SaaS is a quick and efficient delivery model for key business applications
+   such as customer relationship management (CRM), enterprise resource planning
+   (ERP), HR and payroll. 
+  
+  \item {\bf MaaS} (Monitoring as-a-Service): at present still an emerging piece
+  of the Cloud jigsaw but an integral one for the future. 
+  
+  \item {\bf Maas} (Metal as-a-Service): a provisioning construct created by
+  Canonical, to help facilitate and automate the deployment of hyperscale
+  computing environment such as big data workloads and cloud services. 
+  
+  Maas serves as a layer underneath IaaS and works with Joju to coordinate
+  applications and workloads. (Sect.\ref{sec:Maas_Ubuntu})
+  
+  
+  \item {\bf CaaS} (Communication as-a-Service):  enables the consumer to
+  utilize Enterprise level VoIP, VPNs, PBX and Unified Communications without
+  the costly investment of purchasing, hosting and managing the infrastructure.
+  
+  
+  With the service provider responsible for the management and running of these
+  services also, the other advantage the consumer has is that they needn't
+  require their own trained personnel, bringing significant OPEX as well as CAPEX costs. 
+  
+  \item {\bf DBaas} (Database as-a-Service): the user can put their data on a
+  remote database, hosted by some cloud platform, without using any virtual machine
+  instance for the database. In this configuration, application owners do not
+  have to install and maintain the database on their own. 
+  
+  
+  \item {\bf XaaS} (anything as-a-Service):  
+  
+\end{itemize}
+ \url{http://www.zdnet.com/article/cloudy-concepts-iaas-paas-saas-maas-caas-xaas/}
+ 
+With cloud computing service, you have the option to choose a computing cluster
+to rent. There are different companies ofering cloud computing services 
+\begin{itemize}
+  \item Google cloud platform (Sect.\ref{sec:google_cloud-platform}) - platform
+  as a service
+  \item Google Apps (Sect.\ref{sec:google_apps-work}) - software as a service
+  
+  \item Amazon EC2 platform
+\end{itemize}
+You choose the one you like (size, capacity, environment configuration) without
+having to spend the money on buying infrastructure, maintaining the system. You
+pay for what you need. This is the growing trend for small or mid-size companies
+which do not want to maintain a good technical team, and also good for prototype
+testing.
+
+However, a company can also build their own cloud, using {\bf OpenStack} or
+Eucalyptus (Sect.\ref{sec:Eucalyptus}).
+
+\section{Enterprise computing}
+\label{sec:enterprise-computing}	
+
+
+Enterprise computing is a buzzword that refers to business-oriented information
+technology that is critical to a company's operations. This typically requires
+using high-ended computing facilities, and various types of enterprise
+softwares.
+
+In recent years, cloud computing is emerging as a good option for business, to
+reduce the upfront cost, and can be scaled if needed easily.
+
+\section{Cloud Operating System}
+
+A hypervisor or virtual machine manager (Sect.\ref{sec:hypervisor}) 
+is a special software that allows you to run different guest O/S on host O/S.
+The guest O/S is saved in the formed of a virtual machine instance and this
+VM instance can be easily be deployed on any machine. This is the core from
+which cloud computing is created.
+
+A {\bf Cloud O/S} (or known as {\bf Intra-VM O/S}) is an O/S that is supposed to
+run on a {\bf container} (Sect.\ref{sec:containers_Linux}), rather than
+hypervisor. Also, this cloud O/S running on containers is different from the
+traditional O/S running on hypervisors.
+\begin{itemize}
+  \item  The traditional O/S were designed to be run on hardware,
+  so they have all the complexity needed for a variety of hardware drivers from
+  an assortment of vendors with different design concepts. These operating
+  systems are also intended to be multi-user, multi-process, and multi-purpose.
+  They are designed to be everything for everyone, so they are necessarily
+  complex and large.
+
+  \item The cloud O/S are designed to be single-user purpose. Also, it is not
+  designed to run on hardware, and so lacks the bloat and complexity of driver.
+  It is not meant to be multi-user or multi-process, so it can focus on creating
+  a single thread of code which runs one application, and one application only.
+  
+  Most are not multi-purpose, as the target is to create a single payload that a
+  particular instance will execute (OSv is an exception)
+  
+\end{itemize}
+\url{http://wiki.xenproject.org/wiki/Cloud_Operating_Systems#Cloud_Operating_Systems_Versus_Linux_Containers}
+
+
+IN SUMMARY: Generally, a cloud O/S generate an environment that lacks the
+ability to spawn subprocesses, execute shell commands, create multiple threads,
+or fork processes. Instead, they provide a pure incarnation of the language
+runtime targetted, be it OCaml, Haskell, Java, Erlang, or some other
+environment.
+The Cloud O/S are thus small, lightweight, and quick. These Cloud Operating
+Systems may become the core of a new form of cloud, where a single hypervisor
+instance, known as {\bf containers} (Sect.\ref{sec:containers_Linux}) can
+support hundreds or even thousands of VMs.
+ 
+% improves IT
+% resource utilization by treating your company's physical resources as pools from which virtual resources can be dynamically allocated. Using virtualization in your environment, you are
+% able to consolidate resources such as processors, storage, and networks into a
+% virtual environment which provides the following benefits:
+% \begin{itemize}
+%   \item reduce hardware cost
+%   \item optimize workloads
+%   \item IT flexibility and responsiveness
+% \end{itemize}
+
+% To help manage the operation, execution and processes of VMs, Virtual Servers
+% and Virtual Infrastructure as well as the back-end hardware and software
+% resources, we need a cloud operating system or a {\bf virtual operating system}.
+% It is a virtual operating system because it needs to run on top of another
+% operating system, e.g. Linux.
+
+The four different purported meanings of "cloud operating system", though the
+last one Intra-VM O/S is the one people think of first
+
+\begin{enumerate}
+  \item A browser-based desktops: a machine with a simple O/S which functions
+  like a virtual desktop, i.e. central storage of data and a basic set of
+  typical office applications.
+  
+  Example: JoliOS, Glide OS, SliveOS, ZeroPS, Cloudo, Google Chrome OS.
+  
+  \item Marketing hype: just something that a company (Microsoft Azure, HP,
+  Oracle, \ldots) used to bill their customers a service that they call a cloud
+  operating system.
+  
+  
+  \item Intra-VM O/S (Cloud O/S): a lightweight O/S that is tailored and
+  customized to run more efficiently as a virtual machine on a {\bf container}
+  (Sect.\ref{sec:containers_Linux}), which in turn can run on a public, private
+  or hybrid cloud environment.
+  
+  Example: OSv (produce Java environment), Mirage O/S (use
+  OCaml-based kernel), LING (create Erlang environment), HaLVM (Haskell
+  environment), ClickOS (high-performance uni-kernel producing network devices)
+
+  \item Roll-your-own cloud software: it is a special type of software that
+  enable you to create a cloud computing environment, primarily a private cloud
+  inside an organization. Here, the software manage a set of networked machies
+  to deliver cloud services make sense. 
+  
+  Example: OpenStack
+  
+  
+\end{enumerate}
+Based on Michael C. Daconta, only OpenStack deserves the name cloud O/S as it
+provides the full operating system each run on a physical machine
+\footnote{\url{http://gcn.com/Blogs/Reality-Check/2014/01/cloud-operating-system.aspx}}
+
+% Example of cloud operating system
+% \begin{enumerate}
+%   \item OSv
+%   \item Windows Azure
+%   \item Google Chrome OS
+%   \item OpenStack
+% \end{enumerate}
+
+A cloud operating system is a type of operating system designed to operate
+within cloud computing and virtualization environments. System virtualization
+creates many virtual systems within a single physical system. Here, we need a
+Cloud Operating System or Cloud Platform. 
+
+A Cloud O/S provides many layers of abstraction.
+
+
+\subsection{OSv (customized O/S to run as a guest VM)}
+\label{sec:OSv}
+
+A group of senior programmers who created KVM (Sect.\ref{sec:KVM}) created OSv -
+a customized operating system for virtual machine. This cloud operating system
+is designed to run applications in virtual machines extremely fast via a
+stripped down version of Linux. The applications must be either Java, Ruby or
+POSIX applications. For this reason, it does not support a notion of users (it's not a
+multiuser system) or processes - everything runs in the kernel address space.
+
+OSv can be controlled by hypervisor like KVM (Sect.\ref{sec:KVM}), Xen
+(Sect.\ref{sec:Xen}), VMWare's ESXi (Sect.\ref{sec:VMWare_ESXi}), or VirtualBox
+(Sect.\ref{sec:VirtualBox}). OSv bundles an app, application server, and Java
+Virtual Machine into a hypervisor that sits on top of hardware - no Linux OS
+needed. It use ZFS filesystem (Sect.\ref{sec:filesystem_block-oriented}) and
+claimed to have sub-1 second bootime (i.e. the boot time is less than 1 second)
+\footnote{\url{http://www.embedded-bits.co.uk/2010/1-second-linux-boot-time/}},
+while matching or outperforming Linux guests on VMs on benchmarks around
+SpecJVM, MemCacheD, Cassandra, and TCP/IP.
+
+OSv lacks support for multiple address spaces - which boots its performance -
+and instead of mandating separation between applications, the kernel uses the
+JVM to block accesses to kernel memory. These two methods free up resources for app performance. 
+Also, low level OS mechanisms such as memory management, scheduling and IO are
+accessible for the JVM directly, resulting in unparalleled throughput and
+latency.
+
+Since the JVM protects itself from the application by verifying bytecode, OSv
+does not need to do this. The application and the kernel run in the same
+privilege level, and so expensive context switches and parameter validation are
+avoided.
+
+Ideal workloads for the system include Java application servers like Tomcat, or
+C-based applications ported by OSv developers, such as MemCacheD, redis,
+nginx, or MongoDB. 
+
+\url{http://en.wikipedia.org/wiki/OSv}
+
+\url{http://www.slideshare.net/rhatr/osv-probably-the-best-os-for-cloud-workloads-youve-never-hear-of}
+
+\url{http://www.theregister.co.uk/Print/2013/09/17/cloudius_systems_osv_cloud_software/}
+
+
+
+\subsection{OpenStack (IaaS) - help managed networked machines as a cloud
+environment}
+
+OpenStack is a control layer that sits above all the virtualized layers and
+provides a consistent way to access everything regardless of the hypervisor
+technology (Sect.\ref{sec:hypervisor}) used (e.g.: KVM, Xen, vmware, etc.)
+underneath.
+\url{http://getcloudify.org/2014/07/10/what-is-openstack-tutorial.html}
+
+OpenStack provides IaaS solution through a variety of complemental services.
+
+OpenStack is a cloud operating system that controls large pools of compute,
+storage, and networking resources throughout a data center. All of the above
+components are managed through a dashboard which gives administrators control
+
+
+
+For information on how to deploy OpenStack - Chap.\ref{chap:OpenStack}.
+
+ 
+\section{PaaS (Cloud Platform services)}
+\label{sec:PaaS}
+
+Many company uses cloud computing platform to provide 'renting' service, e.g.
+users pay by the hours for active server instances; hence the term {\bf
+elastic}. Additional features can be provided
+\begin{itemize}
+  \item users should be able to select the geographical location of the server
+  instances (to minimize latency) and choose different level of redundancy.
+\end{itemize}
+
+The idea of PaaS was pioneered by Amazon Web Service (AWS -
+Sect.\ref{sec:Amazon_AWS}) and Salesforce.com. In 2008, Google launched App
+Engine (Sect.\ref{sec:Google_AppEngine}).
+
+Originally, all PaaS were in the public cloud, then some companies want to
+deploy their own private and hybrid PaaS options (i.e. managed by their own IT
+departments).
+
+Public PaaS is situated in cloud computing in between Software as-a-Service
+(SaaS) and Infrastructure as-a-Service (IaaS). SaaS is software that is hosted
+on the cloud; while IaaS provides virtual storage from a provider with
+adjustable scalability. With IaaS, the users have to manage the server; while
+with PaaS, the server management is done by the provider.
+
+Private PaaS is a software that can be downloaded and installed on a company's
+on-premises infrastructure, or in a public cloud. Once it is installed on one or
+many machines, it arranges the applications and databases components into a
+single hosting platforms. Example:
+\begin{enumerate}
+  \item Apprenda: provide .NET support
+  \item Red Hat's OpenShift
+  \item Pivotal Cloud Foundry
+\end{enumerate}
+
+Mobile PaaS (mPaaS):
+\begin{enumerate}
+  \item Kinvey
+  \item CloudMine
+  \item AnyPresence
+  \item FeedHenry
+  \item FatFractal
+  \item Point.io
+\end{enumerate}
+
+
+ (e.g. Heroku -
+Sect.\ref{sec:Heroku})
+
+% Example:
+% \begin{itemize}
+%   \item Heroku
+%   \item 
+% \end{itemize}
+
+\subsection{Heroku}
+\label{sec:Heroku}
+
+Heroku is PaaS; while Amazon AWS (Sect.\ref{sec:Amazon_AWS}) is IaaS.
+Recently, AWS does actually have a PaaS offering, Elastic Beanstalk, that
+supports Ruby, Node.js, PHP, Python, .NET and Java.
+
+To get your code running on AWS and looking a bit like a Heroku deployment,
+you'll want some EC2 instances - you'll want a load balancer / caching layer
+installed on them (e.g. Varnish), you'll want instances running something like
+Passenger and nginx to serve your code, you'll want to deploy and configure a
+clustered database instance of something like PostgreSQL. You'll want a
+deployment system with something like Capistrano, and something doing log
+aggregation.      
+
+\url{http://stackoverflow.com/questions/9802259/why-do-people-use-heroku-when-aws-is-present-whats-distinguishing-about-heroku}
+
+Heroku is one of the first cloud platforms (using Debian as the base O/S, and currently is using
+Ubuntu), developed since 2007, with language supports
+\begin{itemize}
+  \item Ruby (the first one) and support Rack-based objects (web server interface) for 
+  writing web applications.
+  
+  \item Java
+  \item Node.js
+  \item Scala
+  \item Clojure
+  \item Python
+  \item PHP
+  \item Perl
+\end{itemize}
+and database
+\begin{itemize}
+  \item PostgreSQL
+  \item MongoDB
+  \item Couchbase server
+  \item Cloudant
+  \item Redis
+\end{itemize}
+
+The app running on Heroku has the domain name: applicationname.herokuapp.com
+and resolved by Heroku DNS server.
+
+Heroku is now part of Salesforce.com.
+
+
+Writing apps running on Heroku platform:
+\begin{itemize}
+  \item scheduler feature: \url{https://addons.heroku.com/scheduler}
+  simple scheduling (regular 10 mins, hourly, daily interval)
+  
+  \item APScheduler: more complicated scheduling (every 5min, or 37mins or
+  at specific time)
+\end{itemize}
+
+\section{Cloud services: Amazon AWS}
+\label{sec:Amazon_AWS}
+
+Amazon Web Services (AWS) provides an option to select any of the 18 products
+and services
+\begin{enumerate}
+  \item Amazon EC2: provide an EC2 instances (e.g. Windows or Linux ) which
+  works as remote computer, on which we can install whatever software you want,
+  including a web server running PHP code and a database server. 
+  
+  We can scale up or down easily the number of instances we need. It charges by
+  the amount of hours you run the instances.
+  
+  Existing instances: 
+  \begin{itemize}
+    \item Linux, RHEL, SLES t2.micro instance
+    \item Windows t2.micro instance
+  \end{itemize}
+
+  EBS is the file system of the EC2 instance itself, kinda like NTFS or ext4.
+  AmazonS3 can be seen as an external storage device with high capacity and high
+  availability
+
+  \item Amazon EBS: persistent data storage that can attach to an EC2 instance
+
+Amazon Elastic Block Storage (EBS) provides raw block device that can be
+  attached to Amazon EC2 instances, and can be used like any raw block device,
+  e.g. formatting the devices with a given filesystem
+  (Sect.\ref{sec:file_system}) and mounting it. Replication is supported to
+  avoid data loss due to failure of a single component.
+  
+  EBS volume can be:  upto 1TB (June 2014)
+  
+  \url{http://en.wikipedia.org/wiki/Amazon_Elastic_Block_Store}
+  
+  \item Amazon S3 (Simple Storage Service): provide a persistent storage
+  service, typically to store large binary files. In additional to binary data,
+  you can choose services that provide No-SQL database server (e.g. AWS
+  DynamoDB) or SQL database servers (e.g.
+  Amazon RDS).
+  
+  It charges by the amount of storage and the number of data access
+  Default: 5GB and 20,000 Get requests + 20,000 Put requests.
+  
+  S3 was designed for content storage. The correct Amazon service to use for
+  content delivery is Amazon CloudFront. 
+  
+  \item Amazon DynamoDB: provide No-SQL database server
+  (Sect.\ref{sec:DynamoDB})
+  
+  \item Amazon RDS: provides option to choose MySQL, Postgres, Oracle, SQL
+  Server, and Amazon Aurora.
+
+Database service is provided via Amazon RDS (Relational Database Service) web
+service, and it uses Oracle, SQL Server, MySQL or PostgreSQL, with encryption
+option. Recently, RDS supports Aurora, a MysQL-compatible, relational database
+engine (Sect.\ref{sec:Aurora}).
+\url{http://aws.amazon.com/rds/}.
+
+  \item AWS Lambda: a compute service (since Nov-2014), run code without
+  provisioning or managing servers by creating a Lambda function, and then
+  connect the function to your AWS resources)
+  
+  Lambda will automatically run code in response to modifications to objects
+  uploaded to Amazon S3 buckets, messages arriving in
+  Amazon Kinesis streams, or table updates in Amazon DynamoDB.
+  \url{https://aws.amazon.com/blogs/aws/run-code-cloud/}
+  
+  \item AWS CloudFront: 
+  
+  
+\end{enumerate}
+
+Free account for 12 months: AWS Free Tier includes 30GB of Storage, 2 million
+I/Os, and 1GB of snapshot storage with Amazon Elastic Block Store (EBS).
+\begin{itemize}
+  \item EC2: 750 hrs/month of Windows or Linux t2.micro instance usage
+  \item S3: 5GB storage
+  \item RDS: 750 hrs/month of Micro DB instance usage
+  \item DynamoDB: 25GB storage, upto 200 million requests/month
+  
+  DynamoDB differs from other Amazon services by allowing developers to purchase
+  a service based on throughput (i.e. how many requests per month), rather than
+  storage.
+\end{itemize}
+
+\subsection{EC2}
+
+
+Amazon EC2 supports 2 platforms (check your account to see which one is
+supported)
+\url{https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-supported-platforms.html}
+
+\begin{enumerate}
+  \item EC2-VPC: instances run a virtual private cloud (VPC) that is logically
+  isolated to your account
+  
+   Each instance a private IP address from the private IP address range of your
+  VPC. You can control the IP address range, subnets, routing, network gateways,
+  network ACLs, and security groups for your VPC. You can specify whether your
+  instance receives a public IP address during launch.
+  
+  Instances with public IP addresses or Elastic IP addresses can access the
+  Internet through a logical Internet gateway attached to the AWS network edge
+  
+  \item EC2-Classic: instances run a single, flat network that is shared with
+  other customers
+  
+  Each instance is assigned a private IP address from a shared private IP
+  address range; and a public IP address from Amazon's pool of public IP
+  addresses. Instances access the Internet directly through the AWS network
+  edge.
+    
+\end{enumerate}
+
+EC2 instances are called Amazon Machine Image (AMI) which use one of two types
+of virtualization: paravirtual (PV) or hardward virtual machine (HVM). For best
+performance, use HVM.
+\begin{itemize}
+  \item Paravirtual AMIs boot with a special boot loader called PV-GRUB,
+  \item HVM AMIs are presented with a fully virtualized set of hardware and boot
+  by executing the master boot record of the root block device of your image. 
+  
+  Unlike PV guests, HVM guests can take advantage of hardware extensions that
+  provide fast access to the underlying hardware on the host system.  This
+  virtualization type provides the ability to run an operating system directly
+  on top of a virtual machine without any modification, as if it were run on the
+  bare-metal hardware.
+  
+\end{itemize}
+\url{http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/virtualization_types.html}
+
+EC2 instances are all 64-bit and can be
+\begin{itemize} 
+  \item Linux AMI 2014.09.2 (HVM): an EBS-backed image. 
+  \item Linux AMI 2014.09.2 (PV)
+  
+  The default image includes  command line tools, Python, Ruby, Perl, and Java.
+  The repositories include Apache HTTPD, Docker, PHP, MySQL, PostgreSQL, and other packages.
+  
+  \item Red Hat Enterprise Linux 7.0, SSD volume type: EBS is SSD volume type
+  \item Red Hat Enterprise Linux 6.5
+  
+  \item SUSE Linux Enterprise Server 12, SSD volume type:
+  
+  \item Ubuntu Server 14.04 LTS, SSD volume type
+  
+  \item Windows Server 2012 R2 base
+  \item Windows Server 2012 R2 with SQL Server web
+  \item Windows Server 2012 R2 with SQL Server standard
+  \item Windows Server 2012 base
+  \item Windows Server 2012 with SQL Server Express
+  \item Windows Server 2012 with SQL Server Web
+  \item Windows Server 2012 with SQL Server Standard
+  
+  \item Windows Server 2008 base
+  \item Windows Server 2008 R2 base
+  \item Windows Server 2008 R2 with SQL Server Express and IIS
+  \item Windows Server 2008 R2 with SQL Server Web
+  \item Windows Server 2008 R2 with SQL Server Standard
+\end{itemize}
+
+Factors to consider an Amazon AMI
+\url{http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/finding-an-ami.html}
+
+After you choose the Amazon AMI instance, your next step is to choose the host
+machine to deploy. The choice depends on the purpose (1) storage optimized
+(i.e. HI1 instance for No-SQL or HS1 instance for large-scale datawarehouse),
+(2) memory optimized (for database app, memcached or distributed caches apps
+such as SAP or Microsoft SharePoint)
+
+\begin{itemize}
+  \item \verb!t2.micro!
+  \item \verb!t2.small!
+  \item \verb!t2.medium!
+  \item \verb!m3.medium!
+  \item \verb!m3.large!
+  \item \ldots
+  \item \verb!c3.8xlarge! 
+  \item \verb!g2.2xlarge!: backed by one Kepler GK104 GPGPU and 8x hyperthreads
+  Intel Xeon E5-2670
+\end{itemize}
+
+One EC2 Compute Unit provides the equivalent CPU capacity of a 1.0-1.2 GHz 2007
+Opteron or 2007 Xeon processor.
+
+
+\subsection{EBS}
+
+% \subsection{Amazon}
+% 
+% Amazone EC2 (Elastic Compute Cloud), and AWS (Amazon Web Service).
+% The AWS allows user to create the server instances and then choose the
+% configurations and the price plan to use the Amazon EC2. Other options for data storage:
+% on Amazon Storage (S3) that uses EBS; or on noSQL-database
+% DynamoDB .
+
+
+\section{Cloud services: Google}
+
+\begin{enumerate}
+  \item Google Cloud Storage: 
+  
+  \item Google App Engine: 
+\end{enumerate}
+
+
+\section{Cloud Management Platform} 
+
+A Cloud Computing Platform is a web-based platform that enables users to 
+\begin{enumerate}
+  \item create a virtual computer (i.e. a server instance), via an image (e.g.
+  Amazon machine image)
+  
+  The image should contain any software desired
+  
+  \item create, launch, terminate server instances as needed
+\end{enumerate}
+
+
+Chap.\ref{chap:multi-cloud-management} 
+
+\subsection{Ubuntu}
+
+Want to minimise the time to get your cloud infrastructure up and running and
+start offering your services to customers? 
+
+
+\url{http://www.ubuntu.com/cloud/tools}
+ 
+\section{Google}
+
+\subsection{Google: Google Apps for Work}
+\label{sec:google_apps-work}
+
+Google Apps for Work (formerly: Google Apps) is a cloud computing
+solution that provide free web applications (Gmail, Google Docs, Google
+Calender, Google Drive), and business-specific features (e.g. ) and runs on
+Google Cloud Platform (Sect.\ref{sec:google_cloud-platform})
+
+With web applications, the data is hosted by Google's network of secure data
+centers.
+
+
+
+\subsection{Google: Google Cloud Platform}
+\label{sec:google_cloud-platform}
+
+Google Cloud Platform is a cloud computing platform hosted on the infrastructure
+provided by Google, which is the same as the infrastructures being used
+internally by Google to host Google Search and Youtube. 
+
+By using this cloud platform, users can develop a range of applications from
+simple website to complex applications. 
+
+Google Cloud Platform provides
+\begin{itemize}
+  \item storage: regular file (Cloud Storage), database (Cloud SQL), Cloud
+  Datastore
+  
+  \item running environment: Compute Engine, App Engine (Chap.\ref{chap:AppEngine})
+  
+  Google Compute Engine is an IaaS product offering flexible, self-managed
+  virtual machines hosted on Google. It can be Linux-based VM running on KVM,
+  local and durable storage options, can be configured and control via a simple
+  REST based API.
+  
+  Google App Engine allows users to control Google Compute Engine cores and
+  offers a web facing front end for Google Compute Engine data processing
+  applications. \url{https://cloud.google.com/compute/docs/faq}
+  
+  \item application services: BigQuery, Cloud Endpoints
+\end{itemize}
+
+\subsection{Google: Google search for work}
+
+\subsection{Google: Google Map for work}
+ 
+
+
+\section{Ubuntu for Cloud Computing}
+
+Ubuntu Enterprise Cloud (UEC) was introduced to Ubuntu 10.04.1 (Lucid) using
+Eucalyptus (Sect.\ref{sec:Eucalyptus}) that runs on hypervisors like KVM, Xen
+and VMWare. 
+\url{https://help.ubuntu.com/community/UEC}
+
+Since Ubuntu 11.0, UEC is replaced by Ubuntu Cloud Infrastructure (UCI) which is
+based on OpenStack.
+\url{https://help.ubuntu.com/community/UbuntuCloudInfrastructure11.10}
+\begin{itemize}
+  \item Install Orchestra server
+\begin{verbatim}
+sudo apt-get update
+sudo apt-get install ubuntu-orchestra-server -y
+\end{verbatim}  
+  
+  \item Install Juju (on the same server where Orchestra is installed or a
+  different one)
+  
+  \item Deploy UCI with Juju
+\end{itemize}
+REQUIREMENTS:
+\begin{itemize}
+  \item  all nodes with two network interfaces linked to two seperate physical
+  networks. 
+  
+  Deploying with a single network is possible with some hacking and workarounds,
+  see original document for that. 
+  
+  \item Minimum 6 nodes are required, including a node for juju bootstrap node.
+\end{itemize}
+
+There is several changes in UCI since Ubuntu 12.04 LTS that use OpenStack
+Essex release 
+\url{https://help.ubuntu.com/community/UbuntuCloudInfrastructure}
+
+
+
+ \section{MAAS Ubuntu}
+ \label{sec:Maas_Ubuntu}
+
+ 
+MAAS as first introduced into Ubuntu 12.04 LTS. It is a provisioning tool by
+Canonical for bridging cloud semantics to the bare metal world using Ubuntu
+O/S. \url{http://www.webopedia.com/TERM/M/metal-as-a-service_maas.html}
+
+For more information, read Sect.\ref{sec:MAAS}.
+
+\section{Cloud storage - security}
+
+One thing that stops a lot of people from using cloud storage companies is the
+perceived lack of security. 
+
+\subsection{BoxCryptor (commercial)}
+
+BoxCryptor's encryption helps fill that need. It is based on EncFS.
+\footnote{\url{http://en.wikipedia.org/wiki/EncFS}} BoxCryptor is a free Windows
+desktop app that creates an encrypted folder that can be placed inside your cloud storage folder.
+
+Once you create the folder and assign a password, simply drag and drop the files
+you want protected into that folder. BoxCryptor instantly encrypts and protects
+them using the AES-256 standard. 
+
+To unlock the folder and view your files, simply run BoxCryptor, navigate to the
+encrypted folder and enter your password. If someone attempts to open the files without the password, an error message
+will show. However, only the file contents are hidden: The file name and file
+format are still in plain sight. So for super-duper extra security, change the
+file name to something innocuous.
+
+There is no master password retrieval process, i.e. \textcolor{red}{once you set
+the password for the encrypted folder, if you forget the password, the files
+inside the folder are lost forever.}
+  
+  
+\subsection{TrueCrypt (stopped in 5/2014)}
+
+TrueCrypt provides on-the-fly encryption (OTFE).
+TrueCrypt supports Windows, OS X and Linux operating systems, both 32-bit and
+64-bit, except Windows IA-64 and Mac OS 10.6 32-bit. The version for Windows 7,
+Windows Vista, and Windows XP can encrypt the boot partition or entire boot
+drive.
+
+TrueCrypt supports  AES, Serpent, and Twofish, along with five different
+combinations of cascaded algorithms are available: AES-Twofish,
+AES-Twofish-Serpent, Serpent-AES, Serpent-Twofish-AES and Twofish-Serpent. 
+
+TrueCrypt License is not considered "free" by several major Linux distributions
+and is therefore not included in Debian, Ubuntu, Fedora,
+openSUSE, or Gentoo. 
+
+\url{http://en.wikipedia.org/wiki/TrueCrypt}
+
+
+\url{http://truecrypt.sourceforge.net/}
+
+\subsection{BitLocker}
+
+BitLocker provides full disk encryption on Windows platform (for Windows Vista,
+windows 7, 8, 8.1, Windows Server 2008). 
+
+\subsection{EncFS}
+\label{sec:EncFS}
+
+\url{https://github.com/vgough/encfs}
+
+\section{Big Data on the Cloud }
+\label{sec:BigData-on-Cloud}
+
+\subsection{OpenStack + Hadoop}
+\label{sec:OpenStack+Hadoop}
+
+OpenStack 2014.2 codedname Juno enable running Hadoop applications (including
+Apache Spark - Sect.\ref{sec:apache_spark}) on OpenStack via the new feature:
+Sahara.
+\url{https://wiki.openstack.org/wiki/Sahara}
+
+\url{http://www.zdnet.com/article/openstack-hooks-up-with-hadoop-to-bring-big-data-to-the-cloud/}
+
+\chapter{Multi-cloud management}
+\label{chap:multi-cloud-management}
+
+
+So far, the public cloud market has seen increasing consolidation under the “big
+four” suppliers— namely Google, Amazon, Alibaba, and Microsoft— which could
+account for 84 percent of the global market. 
+This is considered as 'chapter one', with only 20\% of data from enteprise moved to the cloud.
+
+
+Chapter two requires a more complex technologies - in that “The other 80
+[percent] now becomes not just more complex, it’s got a different complexion,”
+she said, with customers wanting to keep their most important and sensitive data
+on their own servers.
+
+Companies established in the ‘pre-cloud’ era— such as IBM, Red Hat, Oracle and
+Microsoft— stand to benefit from hybrid computing, as they can still sell their
+software and hardware, as well as cloud services.
+
+
+
+
+Enterprises are embracing Self-Service, and want to take advantage of multiple platforms and the choice and speed they provide. 
+The main advantage of multiclouds
+\begin{itemize}
+  \item client can choose what service to run on the cloud that it fits (in terms of security-level, cost, easy-of-use)
+\end{itemize}
+
+several cloud management platform (CMP) 
+\begin{enumerate}
+  \item RightScale (started 2007, acquired by Flexa in 2018)
+  
+  \item ManageIQ (acquired by RedHat in 2012):
+  
+  provider of enterprise cloud management and automation solutions that enable
+  organizations to deploy, manage and optimize private clouds, virtualized
+  infrastructures and virtual desktops
+  
+  \item Cloudpia (acquired by Cisco in )
+  
+  \item Estratius (acquired by Dell in 2013)
+  
+  \item ServiceMesh (acquired by CSC in 2013)
+  
+  \item Nimbula (acquired by Oracle in 2013)
+  
+  \item ScaleXtreme (acquired by Citrix in 2014)
+  
+  \item Scalr:
+  
+  
+Scalr is not an infrastructure provider or reseller. The infrastructure you
+deploy on is yours: you give us the keys to your infrastructure cloud so we can
+make the API calls to the provider on your behalf and so we can also rev up or
+power down servers for you. When traffic piles up, Scalr detects the increased load, commissions new
+  servers for you from the cloud, and then spreads the load.
+  
+  
+  \item Terraform: Terraform is an open source too
+  
+  
+Scalr and Terraform are primarily classified as "Cloud Management" and
+"Infrastructure Build" tools respectively.
+With Terraform, you describe your complete infrastructure as code, even as it
+spans multiple service providers. Your servers may come from AWS, your DNS may
+come from CloudFlare, and your database may come from Heroku.
+Terraform will build all these resources across all these providers in parallel.
+  
+   \item RightScale:
+   
+   The multi-cloud integration enables you to choose your own clouds, providing freedom to work with any vendor in a rapidly changing market.
+    
+   \item Cloudify:
+   
+    an open source application management framework that allows users to manage even the most complex apps by automating their DevOps processes.
+    
+    
+    \item Morpheus: 
+    
+    a cloud application management and orchestration platform that works on any cloud or infrastructure, from AWS to bare metal
+    
+  \item CopperEgg:
+  
+  Continuous visibility and cloud monitoring for all your servers – hosted or private, Linux or Windows. Works great with Amazon EC2, Rackspace, or any public or private cloud.
+  
+  \item Commando.io:
+  
+  A simpler way to manage servers online. Commando.io empowers users to be more
+  efficient, improve their workflow, and eliminate anxiety over server
+  provisioning, maintenance, and deployment.
+  
+  
+  
+\end{enumerate}
+
+\section{RightScale}
+
+RightScale, found in 2007, is one of the first multi-cloud management and cost
+optimization companies.
+It delivers vendor-agnostic cloud management capabilities, to bridge the gap between private and public clouds.
+It was built as a platform to abstract provider-specific services, features, and
+tools that could bring multiple IaaS environments into a common control plane.
+Supported platforms:
+\begin{itemize}
+  \item initially: VMware, AWS and OpenStack
+\end{itemize}
+
+
+\chapter{Cloud-enabled applications}
+\label{chap:cloud-native-apps}
+
+In 2006, Amazon launched their Amazon Web Services (AWS) public cloud platform,
+and a new era began. The era of cloud-native applications.
+
+Application modernization is an area of great importance to your clients. Only
+20 percent of applications and workloads that exist today are cloud-enabled
+
+
+What does it mean to build and run an application on the cloud? There are 3
+levels of cloud-service abstractions: Infrastructure as a Service (IaaS),
+Platform as a Service (PaaS) and Software as a Service (SaaS).
+ 
+\begin{enumerate}
+  \item IaaS:
+  giving users the basic infrastructure needed to build and deploy an application.
+  
+   Amazon Elastic Compute Cloud (EC2) falls into the IaaS category
+   
+   This typically requires the IaaS providers to provide PaaS.
+  
+  \item PaaS: 
+  
+  PaaS products offer a higher level of abstraction, so the user won’t be
+  exposed to the O/S, middleware or runtime and needs only to concern him or
+  herself with the application and data.
+  
+  This recently is being provided via containers.
+  Within the PaaS market, two of the major players are Pivotal Cloud Foundry and
+  Kubernetes. They are both open source cloud PaaS products for building,
+  deploying and scaling applications.
+  
+  
+  \item SaaS:
+  SaaS products are applications built and hosted by a third-party platform and
+  made available to users via the internet.
+  
+  The user can make query, e.g. REST APIs, and the cloud-native app runs,
+  returns results via JSON file output.
+  
+  
+  
+\end{enumerate}
+ 
+ 

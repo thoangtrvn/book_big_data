@@ -1,0 +1,81 @@
+\chapter{Web Search Engines}
+\label{chap:Web_SearchEngines}
+
+\url{http://en.wikipedia.org/wiki/List_of_search_engines}
+
+Building Internet-scale search engines requires huge amounts of data and
+therefore large numbers of machines to process it. Mike Cafarella and Doug
+Cutting estimated a system supporting a 1-billion-page index would cost around
+half a million dollars in hardware, with a monthly running cost of \$30,000.
+
+
+Yahoo! Search consists of four primary components
+\begin{enumerate}
+  \item Crawler: download the pages (from web servers) - Chap.\ref{chap:WebCrawling}
+  
+  \item WebMap: build a (huge) graphs of this known web (i.e. the linking
+  between pages)
+  
+  The graph being built for the Internet can reach $10^{12}$ edges (each
+  representing a web link), and $10^{11}$ nodes (each representing a distinct
+  URL).  Creating and analyzing such a large graph requires a large number of
+  computers running for many days. 
+  
+  \item Indexer: build a reverse index to the best pages
+  \item Runtime: answer uer's queries.
+\end{enumerate}
+
+\section{Nutch (web search engine + web crawler)}
+\label{sec:Nutch_websearch_engine}
+
+Nutch is an open-source web search engine based on Lucene
+(Sect.\ref{sec:Lucene}) by two authors (Doug Cutting, Mike Cafarella).
+The fetcher ("robot" or "web crawler") has been written from scratch
+specifically for this project. However, they soon realized that their
+architecture wouldn't scale to the billions of pages on the Web when they
+started in 2002. Then, when a paper describing Google's Distributed FS called
+GFS was published in 2003.
+
+GFS, or something like it, would solve their storage needs for the very large
+files generated as a part of the web crawl and indexing process. In particular,
+GFS would free up time being spent on administrative tasks such as managing
+storage nodes. In 2004, they set about writing an open source implementation,
+the Nutch Distributed Filesystem (NDFS).   
+
+Again, with the paper describing MapReduce programming model from Google
+(Sect.\ref{sec:MapReduce}), Nutch added an implementation for MapReduce
+programming model and porting the existing algorithm from Nutch to using
+MapReduce and NDFS.
+
+
+\section{Bing Search API}
+
+We can use the results returned by Bing Search API.
+Microsoft provides RESTful APIs which can be accessed from PHP, Microsoft .NET
+and C\#, or wrappers in Python (bingpy - Sect.\ref{sec:bingpy}).
+
+
+\subsection{BingPy}
+\label{sec:bingpy}
+
+\url{https://pypi.python.org/pypi/bingpy/0.0.1}
+
+\begin{verbatim}
+from bingpy import WebSearch
+web = WebSearch("YOUR_API_KEY")
+pages = web.search("kyoto", 20)
+for page in pages:
+    print page.title
+\end{verbatim}
+
+Bing key or account key are used by applications to access your Microsoft Azure
+Marketplace dataset subscriptions. Do not share your account keys with other users.
+
+To get Bing Key: \url{http://www.articlekevo.com/get-bing-api-key/}
+% :
+% \begin{enumerate}
+%   \item A distributed file system (Hadoop Distributed File System -
+%   Sect.\ref{sec:HadoopFS})
+%     
+%   \item A MapReduce facility which become Apache Hadoop project.
+% \end{enumerate}

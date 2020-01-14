@@ -1,0 +1,298 @@
+\chapter{Distributed Filesystem}
+\label{chap:distributed_filesystem}
+
+A brief information is given in Sect.\ref{sec:distributed_filesystem}. Most of
+the open-source distributed filesystem have been implemented for Linux.
+In Hadoop, the default file system is HDFS; yet we can also use other options
+\begin{itemize}
+  \item open-source: GlusterFS, Quantcast File System
+  \item commercial options: Isilon OneFS, Netapp
+  \item cloud-based storage system: S3 (Amazon's Simple Storage System)
+\end{itemize}
+
+\section{Google FS (Colossus)}
+\label{sec:GoogleFS}
+
+
+The new version of Google FS is named Colossus. 
+
+
+\section{Hadoop FS (HDFS)}
+\label{sec:HadoopFS} 
+
+HDFS is a highly fault-tolerant distributed file system, developed as
+part of Hadoop (Sect.\ref{chap:Hadoop}).
+
+Like Hadoop in general, HDFS is designed to be deployed on low-cost hardware.
+While most block-structured file systems use a block size on the order of 4 or 8
+KB; Hadoop splits files into large blocks (default 64MB or 128MB) and distribute
+the blocks among the nodes in the cluster. This allows HDFS to decrease the
+amount of metadata storage required per file (the list of blocks per file will
+be smaller as the size of individual blocks increases).  A wrapper to HDFS is
+HBase (Chapter \ref{chap:HBase}).
+
+Because of the relatively low amount of metadata per file (it only tracks file
+names, permissions, and the locations of each block of each file), all of this
+information can be stored in the main memory of the NameNode machine, allowing
+fast access to the metadata.
+
+HDFS allows for fast streaming reads of data, by keeping large amounts of data
+sequentially laid out on the disk. The consequence of this decision is that HDFS
+expects to have very large files, and expects them to be read sequentially.
+Thus, EXT4 filesystem is considered a good option.
+
+You cannot interact with HDFS-stored files using ordinary Linux file
+modification tools (e.g., ls, cp, mv, etc). Because HDFS stores files as a set
+of large blocks across several machines, these files are not part of the
+ordinary file system. HDFS runs in a separate namespace, isolated from the
+contents of your local files.
+The files inside HDFS (or more accurately: the blocks that make them up) are
+stored in a particular directory managed by the DataNode service, but the files
+will named only with block ids.
+
+HDFS does come with its own utilities for file management, which act very
+similar to these familiar tools.
+To open a file, a client contacts the NameNode and retrieves a list of locations
+for the blocks that comprise the file.
+Clients then read file data directly from the DataNode servers, possibly in
+parallel. The NameNode is not directly involved in this bulk data transfer,
+keeping its overhead to a minimum. 
+
+Just as with a standard file system, Hadoop allows for storage of data in any
+format, whether it's text, binary, images, etc. Hadoop also provides built-in
+support for a number of formats optimized for Hadoop storage and processing,
+text files, {\bf SequenceFile}, or more complex (but also more functionally
+rich) options like Avro and Parquet. It's possible to create your own custom
+file format in Hadoop as well.
+
+There are several Hadoop specific file formats that were specifically created to
+work well with MapReduce. These Hadoop specific file formats include file based
+data structures such as sequence files, serialization formats like Avro, and
+columnar formats such as RCFiles and Parquet.   These file formats have
+differing strengths and weaknesses, but all share the following characteristics
+that are important for Hadoop applications: 
+\begin{itemize}
+  \item splittable compression
+  \item agnostic compression: the file can be compressed with any compression
+  method, without readers having to know the codec.
+\end{itemize}
+The SequenceFile format is one of most commonly used file based format in
+Hadoop, but other file based formats are available such as MapFiles, SetFiles,
+ArrayFiles, and BloomMapFiles. Since these formats were specifically designed to
+work with MapReduce, they offer a high level of integration for all forms of
+MapReduce jobs, including those run via Pig and Hive.    
+\url{https://www.safaribooksonline.com/library/view/hadoop-application-architectures/9781491910313/ch01.html}
+
+The first step is to copy data onto the HDFS, i.e. the {\bf ingestion process}.
+The following list describes which tools to use for data from a particular
+source or data format
+\begin{itemize}
+  \item \ldots : Talend
+  \url{http://en.wikipedia.org/wiki/Talend}
+  
+  
+  \item RDBMS: use Apache Sqoop or HBase, or MapR M7 tables
+  
+  Example: 1 TB of data take 3hr of ingestion using Sqoop.
+  
+  HBase and M7 have identical API and differ only in what kind of latencies you
+  can expect
+  
+  \item Bulk file: use FTP and then ETL tools to load into HDFS
+  
+  ETL tool are too generic for the actual cases at hand. Usually, the ETL tools
+  provide a way of running custom code as part of the work flow, which is a
+  solution. 
+  
+  \item Realtime Data: using WebService + Flume (log aggregation, near
+  real-time loading - near real-time means latency about less than half a day)
+  \item Realtime data: (continuous stream ingestion) Storm.
+  
+   Flume is good at transport and some light enrichment / decoration. Storm can
+  actually do real-time heavy lifting.
+  
+  \item (not using HDFS, but use NFS): Customers of MapR's Hadoop distribution
+  typically utilize NFS to ingest data (and subsequently make it available to
+  other parts of the organization, either in a Hadoop context or not). They
+  often find NFS easier to use than Flume, legacy ETL/ELT processes and the
+  like. (Note that I work for MapR).
+\end{itemize}
+The choice depending on the data source at latency requirements.
+\url{https://www.linkedin.com/groups/Data-Ingestion-Into-Hadoop-3638279.S.199779955}
+
+Data stored in HDFS are just bytes, i.e. there is no datatypes. 
+To access these data, there are several options:
+\begin{enumerate}
+  \item MapReduce jobs: write your own Java/C/C++ code in MapReduce jobs
+  (Chap.\ref{chap:Hadoop})
+  
+  \item HBase's API (in Java, REST, Thrift): (Chap.\ref{chap:HBase})
+  \item Move data from HDFS to relational database systems: To move data between
+  HDFS and relational database, we can use Apache Sqoop.
+\end{enumerate}
+ 
+
+
+\subsection{text files (CSV, XML)}
+
+A very common use of Hadoop is the storage and analysis of logs such as web logs
+and server logs. Such text data, of course, also come in many other forms: CSV
+files, or unstructured data such as emails, etc 
+
+The data stored in HDFS can be either {\it text files} or {\it sequence files}
+in the form of (key,value) pairs. Sequence files are appropriate for situations
+where you want to store the keys and their corresponding values. In text files,
+we can do that but we have to parse each line. The sequence file can be
+compressed and still be splittable, i.e. better workload. We cannot split a
+compressed text file, unless we use a splittable compresion format. Thirdly, a
+sequence file can be approached as a binary files, i.e. more storage efficient;
+while in text files, double values will be stored as a number of characters,
+i.e. large storage overhead.
+
+For example, when storing 1234 in a text file and using it as an integer,
+requires a String to Integer conversion during read, and vice-versa during
+writing. This overhead adds up when you do a lot of such conversions. 
+
+A more specialized form of text files are structured formats such as XML and
+JSON. These types of formats can present special challenges with Hadoop since
+splitting XML and JSON files for processing is tricky, and Hadoop does not
+provide a built-in InputFormat for either of these formats. JSON presents even
+greater challenges than XML, since there are no tokens to mark the beginning or
+end of a record. In the case of these formats, you have a couple of options:     
+\begin{itemize}
+  \item Avro: as a container format, Transforming the data into Avro can provide
+  a compact and efficient way to store and process the data.
+  
+  \item Pig: use a library designed for processing XML or JSON files, e.g.
+  XMLLoader in PiggyBank library; or with JSON using LzoJsonInputFormat in
+  Elephant Bird project. 
+  
+\end{itemize}
+
+\subsection{Binary format}
+
+For most cases of storing and processing binary files in Hadoop, and the file
+size is small, using a container format such as SequenceFile is preferred
+(Sect.\ref{sec:SequenceFile}). If the splittable unit of binary data is larger
+than 64 MB, you may consider putting the data in it's own file, without using a
+container format.
+
+
+\subsection{SequenceFile}
+\label{sec:SequenceFile}
+
+
+HDFS works well with large files, as every 'map' task processes a block of data
+at a time, which is only efficient if the block of data is large enough.
+To solve the problem of storing small files in HDFS, {\bf SequenceFile} are
+used as a container to store small files. It is a flat file consisting of binary
+key/value pairs. Internally, the temporary output of ``map'' operator are also
+in SequenceFile. 
+
+Hadoop's SequenceFile is a persistent data structure for binary key-value pairs.
+Unlike other B-tree structure, we cannot do key editting, adding or removing it.
+It means that the file is append-only. 
+
+There are 3 different SequenceFile formats
+\begin{itemize}
+  \item uncompressed key/value records
+  \item record compressed key/value record - only 'value' are compressed here
+  \item block compressed keyvalue record - both 'key' and 'value' are collected
+  in 'blocks' separately and compressed. The size of 'block' is configurable. 
+\end{itemize}
+\url{http://wiki.apache.org/hadoop/SequenceFile}
+
+
+So, user may need to write a custom reader to interpret the data to tell Hadoop
+which one is key, which one is value. 
+
+\subsection{Serialization formats (Writables, Avro, Protocol Buffers, Thrift)}
+\label{sec:Serialization_hadoop}
+
+Serialization (Sect.\ref{sec:serialization}) is core to a distributed processing
+system such as Hadoop, since it allows data to be converted into a format that
+can be efficiently stored as well as transferred across a network connection. 
+The main serialization format utilized by Hadoop is Writables. There are,
+however, other serialization frameworks seeing increased use within the Hadoop
+ecosystem, including Thrift, Protocol Buffers, and Avro.  Of these, Avro is the
+best suited, since it was specifically created to address limitations of Hadoop
+Writables.
+
+While Avro defines a small number of primitive types such as boolean, int,
+float, and string, it also supports supports complex types such as array, map, and enum.
+
+\subsection{columnar formats (RCFile, ORC, Parquet)}
+
+More recently, a number of databases have introduced columnar storage, which
+provides several benefits over earlier row-oriented systems. Not surprisingly,
+columnar file formats are also being utilized for Hadoop applications. Columnar
+file formats supported on Hadoop include the RCFile format  which has been
+popular for some time as a Hive format, as well as newer formats such as ORC and
+Parquet which are described below. 
+
+
+
+\section{GSS}
+\label{sec:GSS}
+
+
+\section{IBM GPFS}
+
+GPFS is built on the solid foundation of GSS (Sect.\ref{sec:GSS})
+
+It can be deployed in shared-disk or shared-nothing distributed parallel modes.
+It is used by many of the world's largest commercial companies, as well as some
+of the supercomputers on the Top 500 List. GPFS provides concurrent high-speed
+file access to applications executing on multiple nodes of clusters.
+
+To achieve high throughput to a single large file, data
+must be striped across multiple disks.
+
+\subsection{GPFS 3.1}
+
+Starting with GPFS 3.1, the structural limit on the maximum number of disks in
+a file system increased from 2048 to 4096 (each 1TB); however, IBM Spectrum
+Scale still enforces the original limit of 2048 
+
+\section{GPFS Native RAID (declustered RAID): software implementation
+micro-RAID}
+
+With micro-RAID,  RAID is done at a block level as opposed to a disk level. 
+This generally means that the cost of rebuilds can be reduced and the time to
+get back to a protected level can be shortened. 
+
+NOTE: As disks continue to get larger, conventional RAID implementations
+struggle and you can be looking at hours if not days to get back to a protected
+state.
+
+
+
+
+
+
+
+\section{OpenAFS}
+\label{sec:OpenAFS}
+
+\url{http://www.openafs.org/}
+
+\section{Data ingestion}
+\label{sec:data_ingestion}
+
+Data ingestion depends on
+\begin{itemize}
+  \item CPU 
+  \item RAM
+  \item Network card
+  \item Harddrive
+  \item Network bandwidth
+\end{itemize}
+\url{http://www.slideshare.net/Hadoop_Summit/mc-cuch-zhurakouskyjune261210pmroom212}
+
+\section{GlusterFS}
+
+GlusterFS can also be used in Hadoop, in place of HDFS.
+
+\section{Quantcast File System}
+
+Quantcase File System can also be used in Hadoop, in place of HDFS.
